@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Upload";
+    var msg = (ViewBag.OperationStatus.Status == true) ? "Data Updated" : ViewBag.OperationStatus.Message;
+}
+
+<h2>Upload</h2>
+
+<h2>CSV Bulk Upload</h2>
+<p>Note:  Presently this only works if you add an 'ID' column to the CSV manually and fill with 1,2,3,4 etc.  <br />
+    It's a temporary solution.  There is a CSV file with this column already added in the Zip.</p>
+@using (Html.BeginForm("upload","Home",FormMethod.Post, new {enctype="multipart/form-data"})) {
+    
+
+<input type="file" name="FileUpload" />
+<input type="submit" name="Submit" id="Submit" value="Upload" />
+}
+
+<p> @Html.Encode(msg)</p>

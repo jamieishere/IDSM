@@ -1,0 +1,102 @@
+﻿@model IDSM.ViewModel.SearchViewModel
+@using IDSM.Helpers
+
+@{
+    ViewBag.Title = "ViewPlayers";
+}
+
+<h2>ViewPlayers</h2>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".addItem").click(function () {
+            $.ajax({
+                url: this.href,
+                cache: false,
+                success: function (data) { $("#ChosenPlayerRows").append(data); return false; }
+            });
+            return false;
+        });
+        // depreciated in 1.7
+        //$("a.deleteRow").on("click", function () {
+        //    $(this).parents("div.playerRow:first").remove();
+        //    return false;
+        //});
+    });
+    $(document).on("click","a.deleteRow", function () {
+        $(this).parents("div.playerRow:first").remove();
+        return false;
+    });
+</script>
+
+@using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Post))
+{
+
+<div id="ChosenPlayerRows">
+        @foreach (var item in Model.Players_Chosen)
+        {
+            Html.RenderPartial("~/Views/Home/ChosenPlayerRow.cshtml", item);
+        }
+    </div>
+    <input type="hidden" name="GameID" value="1" />
+    <input type="hidden" name="UserTeamID" value="1" />
+<input type="submit" value="Save User Team" />
+}
+    
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+@using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
+{
+         <p> 
+             Club: @Html.DropDownList("footballClub", "All")  
+             Name: @Html.TextBox("SearchString") 
+         <input type="submit" value="Filter" /></p>
+}
+<table>
+    <tr>
+        <th>
+            @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Name)
+            @*@Html.DisplayNameFor(model => model.Players_SearchedFor[0].Name)* - this woudl work if PlayersSearchedFor was a LIST, not an IEnumerable*@
+        </th>
+        <th>
+            @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Nation)
+        </th>
+        <th>
+            @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Club)
+        </th>
+        <th>
+            @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Position)
+        </th>
+        <th></th>
+    </tr>
+</table>
+<table>
+@foreach (var item in Model.Players_SearchedFor)
+{
+    
+    
+    
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nation)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Club)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Position)
+        </td>        
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+            @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+            @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            <!-- creates an link that calls the action BlankPlayerRow, and adds a class to the link of 'additem' - see JQUERY above -->
+            @Html.ActionLink("Add this player", "BlankPlayerRow", new { id = item.Id }, new { @class = "addItem" })
+        </td>
+    </tr>
+}</table>
+
