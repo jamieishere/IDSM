@@ -6,6 +6,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using IDSM.Logging.Log4Net;
+using MvcPaging;
 
 namespace IDSM.Controllers
 {
@@ -28,6 +30,7 @@ namespace IDSM.Controllers
 
         public ActionResult Index()
         {
+             ViewBag.ErrorMessage = "this is the error message";
             var games = _GameRepository.GetAllGames();
             return View(games);
         }
@@ -77,27 +80,49 @@ namespace IDSM.Controllers
             int UserID = WebMatrix.WebData.WebSecurity.CurrentUserId;
           //  Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;
 
-            //check if a record exists in the userteam table with current user id.
-            // if not, create the team
-            // then redirect/
+            // was just heppenin that no id was on the querystring
+            // guessing this was that the operationstatus status was false ..
+ 
+            // want the check if a record exists in the userteam table with current user id & game id
+            // if it doesnt, create it
+            // return the userteamID
+            // this is business logic really, so i want to pull out of the controller?
 
-            var opStatus = _UserTeamRepository.CreateUserTeam(UserID, gameid);
+            
 
-            // NAH the create method has to return the newly created USERTEAMID... maybe need to update the operationstatus object, or utilise it better in the create method-populated the ID field.
-            // instead of that - just redirect to the viewplayers.  in that index action, it gets the currentuser, finds the record for userteam based on that
-            // better anyway.... still though - do need to find out how to return an id from datacontext.save.
+            Log4NetLogger logger2 = new Log4NetLogger();
+            logger2.Info("Test message for Log4Net");
 
+            
 
+            //nned to figure out how i want to do this - where should the logic go - i moved itno here as i thoguth bestt to keep create & get separeate
+            // but now it complicates the logic in here
+            UserTeam ut = _UserTeamRepository.GetUserTeam(userteamid:0, gameid: gameid, userid: UserID);
+            int intUTID = 0;
+            if (ut == null)
+            {
+                OperationStatus opStatus = _UserTeamRepository.CreateUserTeam(UserID, gameid);
+                if (opStatus.Status) intUTID = (int)opStatus.OperationID;
+            }
+            else {intUTID = ut.Id; }
+            
 
-            //if (opStatus.Status)
-            //{
+            // need logging .
 
-            return View("ViewPlayers");
-            //}
-            //else
-            //{
-            //    return View("Index", _GameRepository.GetAllGames());
-            //}
+            if (intUTID > 0)
+            {
+                return RedirectToAction("Index", "ViewPlayers", new { id = intUTID });
+            }
+            else
+            {
+                // do some logging. actually, no need - logging will be done within OperationStatus
+                ViewBag.ErrorMessage = "this is the error message";//opStatus.ExceptionMessage;
+                // do need a better way to handle the error than  just returning to the same page & not saying what happened.
+                // so do want to display the message on screen really
+                return RedirectToAction("Index", "Game");
+            }
+
+            
         }
 
         //

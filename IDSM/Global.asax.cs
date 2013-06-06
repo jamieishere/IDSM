@@ -14,6 +14,7 @@ using System.Web.Routing;
 
 using System.Web.Security;
 using WebMatrix.WebData;
+using IDSM.Logging.Elmah;
 
 namespace IDSM
 {
@@ -41,6 +42,15 @@ namespace IDSM
             DependencyResolver.SetResolver(new UnityDependencyResolver(ModelContainer.Instance));
 
             WebSecurity.InitializeDatabaseConnection("IDSMContext", "UserProfile", "UserId", "UserName", true);
+
+            // Setup our custom controller factory so that the [HandleErrorWithElmah] attribute
+            // is automatically injected into all of the controllers
+            ControllerBuilder.Current.SetControllerFactory(new ErrorHandlingControllerFactory());
+
+            log4net.Config.XmlConfigurator.Configure();
+
+
+
 
 
         }

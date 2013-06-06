@@ -11,11 +11,17 @@ namespace IDSM.Repository
     public class UserTeamRepository : RepositoryBase<IDSMContext>, IUserTeamRepository
     {
 
-        public UserTeam GetUserTeam(int userteamid)
+        // Get a userteam base on UserTeamID, or based on GameID & UserID
+        public UserTeam GetUserTeam(int userteamid = 0, int gameid = 0, int userid = 0)
         {
             using (DataContext)
             {
-                var ut = DataContext.UserTeams.SingleOrDefault(s => s.Id == userteamid);
+                var ut = (userteamid != 0) ? 
+                                            DataContext.UserTeams.SingleOrDefault(s => s.Id == userteamid) :
+                                            // had to change this from SingleOrDefault to FirstOrDefault because the query returned an error
+                                            //  "Sequence has more then one element" - the table had multiple rows while I was testing with same gameid/userid
+                                            //  this prevents it
+                                            DataContext.UserTeams.FirstOrDefault(s => s.GameId == gameid && s.UserId == userid);
                 if (ut == null)
                 {
                     // either return null or throw error not found.
@@ -48,7 +54,7 @@ namespace IDSM.Repository
         }
 
         //public OperationStatus CreateUserTeam(User user, int gameid)
-        
+
         public OperationStatus CreateUserTeam(int userid, int gameid)
         {
             using (DataContext)
@@ -63,7 +69,7 @@ namespace IDSM.Repository
                 {
                     return OperationStatus.CreateFromException("Error creating userteam.", ex);
                 }
-                return new OperationStatus { Status = true };
+                return new OperationStatus { Status = true, OperationID = ut.Id};
             }
         }
 

@@ -98,6 +98,8 @@ namespace IDSM.Controllers
 
             //need to understand mocking and uninty...
 
+            //ViewBag.RouteId();
+
 
 
             // get all clubs

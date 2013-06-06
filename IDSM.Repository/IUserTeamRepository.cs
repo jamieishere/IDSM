@@ -12,7 +12,7 @@ namespace IDSM.Repository
         //User GetUser(int userid);
         //List<User> GetAllUsersForGame(int gameid);
 
-        UserTeam GetUserTeam(int userteamid);
+        UserTeam GetUserTeam(int userteamid, int userid, int gameid);
         //List<UserTeam> GetAllUserTeamsForGame(int gameid);
         OperationStatus CreateUserTeam(int userid, int gameid);
         OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<Player> players);

@@ -19,6 +19,9 @@ namespace IDSM.Models
     ////http://blog.longle.net/2012/09/25/seeding-users-and-roles-with-mvc4-
     // needed to install SQL Compact Tools to be able to add/remove DB columns
 
+    // migrate to sql server 2008
+    //http://stackoverflow.com/questions/5716668/migrate-from-sqlce-4-to-sql-server-2008
+
 
     internal sealed class Configuration : DbMigrationsConfiguration<IDSM.Repository.IDSMContext>
     {

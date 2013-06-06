@@ -63,6 +63,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\DotNetOpenAuth.OpenId.RelyingParty.dll</HintPath>
     </Reference>
+    <Reference Include="Elmah">
+      <HintPath>..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -76,10 +82,19 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Unity.2.1.505.2\lib\NET35\Microsoft.Practices.Unity.Configuration.dll</HintPath>
     </Reference>
+    <Reference Include="MvcPaging">
+      <HintPath>..\packages\MvcPaging.2.0.4\lib\net40\MvcPaging.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -176,25 +191,81 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\GameController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LoggingController.cs" />
     <Compile Include="Controllers\ViewPlayersController.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\HTMLPrefixScopeExtensions.cs" />
+    <Compile Include="Helpers\Logging\DateTimeExtensionMethods.cs" />
+    <Compile Include="Helpers\Logging\DateTimeHelper.cs" />
+    <Compile Include="Helpers\Logging\FormsHelper.cs" />
+    <Compile Include="Helpers\Logging\FuzzyDateTime.cs" />
+    <Compile Include="Helpers\Logging\StringExtensionMethods.cs" />
+    <Compile Include="Helpers\Logging\UrlHelperExtensions.cs" />
+    <Compile Include="Helpers\Logging\TimePeriodHelper.cs" />
     <Compile Include="Helpers\UnityDependencyResolver.cs" />
+    <Compile Include="Logging\Elmah\ErrorHandlingActionInvoker.cs" />
+    <Compile Include="Logging\Elmah\ErrorHandlingControllerFactory.cs" />
+    <Compile Include="Logging\Elmah\HandleErrorWithElmahAttribute.cs" />
+    <Compile Include="Logging\Log4Net\ILogger.cs" />
+    <Compile Include="Logging\Log4Net\Log4NetLogger.cs" />
+    <Compile Include="Logging\Log4Net\LogEvent.cs" />
+    <Compile Include="Logging\Log4Net\LogUtility.cs" />
+    <Compile Include="Logging\Models\ELMAH_Error.cs">
+      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Models\Log4Net_Error.cs">
+      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Models\LogEvent.cs" />
+    <Compile Include="Logging\Models\MvcLoggingDemoContainer.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MvcLoggingDemoContainer.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Models\MvcLoggingDemoContainer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Models\MvcLoggingDemoContainer.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\ElmahRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\ILogReportingFacade.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\ILogReportingRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\Log4NetRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\LogConfigurationSection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logging\Models\Repository\LogReportingFacade.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Migrations\201304302024507_InitialCreate.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.Designer.cs">
       <DependentUpon>201304302024507_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\AccountModels.cs" />
-    <Compile Include="Models\DBInitialiser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\ChosenTeamViewModel.cs" />
+    <Compile Include="ViewModels\LoggingIndexModel.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\ElmahErrors.txt" />
+    <Content Include="App_Readme\Elmah.txt" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -259,6 +330,40 @@
     <Content Include="Content\themes\base\minified\jquery.ui.tooltip.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <EntityDeploy Include="Logging\Models\MvcLoggingDemoContainer.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>MvcLoggingDemoContainer.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Logging\Models\MvcLoggingDemoContainer.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
+      <LastGenOutput>MvcLoggingDemoContainer.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Logging\Models\MvcLoggingDemoContainer.edmx.diagram">
+      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
+    </Content>
+    <Content Include="Logging\Models\MvcLoggingDemoContainer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
+      <LastGenOutput>MvcLoggingDemoContainer.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Logging\Index.cshtml" />
+    <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceer40EN.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlcecompact40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\sqlceca40.dll" />
+    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\README_ENU.txt" />
+    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\msvcr90.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlcese40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceqp40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceme40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceer40EN.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlcecompact40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\sqlceca40.dll" />
+    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\README_ENU.txt" />
+    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\msvcr90.dll" />
     <None Include="Scripts\jquery-1.9.1.intellisense.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
@@ -322,9 +427,10 @@
     <Content Include="Views\Game\Index.cshtml" />
     <Content Include="Views\Game\Create.cshtml" />
     <Content Include="Views\Game\Details.cshtml" />
+    <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
+    <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Views\Home\NewFolder1\" />
   </ItemGroup>
   <ItemGroup>
@@ -347,6 +453,9 @@
     <EmbeddedResource Include="Migrations\201304302024507_InitialCreate.resx">
       <DependentUpon>201304302024507_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
