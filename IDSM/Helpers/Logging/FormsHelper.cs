@@ -7,7 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Xml;
 
-using IDSM.Logging.Models.Repository;
+using IDSM.Repository;
 
 namespace IDSM.Helpers
 {

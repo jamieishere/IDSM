@@ -49,6 +49,9 @@ namespace IDSM.Repository
                     .HasForeignKey(i => i.CreatorId)
                     .WillCascadeOnDelete(false);
 
+                    // Remove the logging classes, as we already have a database for these
+                    //modelBuilder.Ignore<LogEvent>();
+
              base.OnModelCreating(modelBuilder);
         }
 

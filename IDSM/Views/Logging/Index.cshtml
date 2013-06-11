@@ -1,5 +1,7 @@
 ﻿@model IDSM.ViewModels.LoggingIndexModel
-
+@using IDSM.Logging;
+@using IDSM.Logging.Helpers;
+@using IDSM.Logging.Services.Paging;
 @{
     ViewBag.Title = "Index";
 }
@@ -9,23 +11,28 @@
 <div>
  View :
  <strong>List</strong>
- | <%: Html.ActionLink("Chart", "Chart")%>
- | <%: Html.ActionLink("RSS", "RssFeed", new { LoggerProviderName = Model.LoggerProviderName, Period = Model.Period, LogLevel = Model.LogLevel }, new { target = "_blank" })%>
+ | @Html.ActionLink("Chart", "Chart")
+ | @Html.ActionLink("RSS", "RssFeed", new { LoggerProviderName = Model.LoggerProviderName, Period = Model.Period, LogLevel = Model.LogLevel }, new { target = "_blank" })
  </div>
+
+@using (Html.BeginForm("Index", "Logging", new { page = 0 }, FormMethod.Get, new { id = "myform" }))
+       {
 
 <div>
  <div>
  
- Logger : <%: Html.DropDownList("LoggerProviderName", new SelectList(MvcLoggingDemo.Helpers.FormsHelper.LogProviderNames, "Value", "Text"))%>
+ Logger : @Html.DropDownList("LoggerProviderName", new SelectList(IDSM.Logging.Helpers.FormsHelper.LogProviderNames, "Value", "Text"))
  
- Level : <%: Html.DropDownList("LogLevel", new SelectList(MvcLoggingDemo.Helpers.FormsHelper.LogLevels, "Value", "Text"))%>
+ Level : @Html.DropDownList("LogLevel", new SelectList(IDSM.Logging.Helpers.FormsHelper.LogLevels, "Value", "Text"))
  
- For : <%: Html.DropDownList("Period", new SelectList(MvcLoggingDemo.Helpers.FormsHelper.CommonTimePeriods, "Value", "Text"))%>
+ For : @Html.DropDownList("Period", new SelectList(IDSM.Logging.Helpers.FormsHelper.CommonTimePeriods, "Value", "Text"))
  
  <input id="btnGo" name="btnGo" type="submit" value="Apply Filter" />
  
  </div>
  </div>
+    
+    }
 
 <div>
  
@@ -33,11 +40,11 @@
  <div>
  
  <span style="float: left">
- <%: string.Format("{0} records found. Page {1} of {2}", Model.LogEvents.TotalItemCount, Model.LogEvents.PageNumber, Model.LogEvents.PageCount)%>
+ @string.Format("{0} records found. Page {1} of {2}", Model.LogEvents.TotalItemCount, Model.LogEvents.PageNumber, Model.LogEvents.PageCount)
  </span>
  
  <span style="float: right">
- Show <%: Html.DropDownList("PageSize", new SelectList(MvcLoggingDemo.Helpers.FormsHelper.PagingPageSizes, "Value", "Text"), new { onchange = "document.getElementById('myform').submit()" })%> results per page
+ Show @Html.DropDownList("PageSize", new SelectList(IDSM.Logging.Helpers.FormsHelper.PagingPageSizes, "Value", "Text"), new { onchange = "document.getElementById('myform').submit()" }) results per page
  </span>
  
  <div style="clear: both"></div>
@@ -48,20 +55,17 @@
  
  <div>
  <div>
- <%= Html.Pager(ViewData.Model.LogEvents.PageSize, ViewData.Model.LogEvents.PageNumber, ViewData.Model.LogEvents.TotalItemCount, new { LogType = ViewData["LogType"], Period = ViewData["Period"], PageSize = ViewData["PageSize"] })%>
+ @Html.Pager(ViewData.Model.LogEvents.PageSize, ViewData.Model.LogEvents.PageNumber, ViewData.Model.LogEvents.TotalItemCount, new { LogType = ViewData["LogType"], Period = ViewData["Period"], PageSize = ViewData["PageSize"] })
  </div>
  </div>
  
  </div>
- 
- <% } %>
 
-
-<% if (Model.LogEvents.Count() == 0) { %>
+@if (Model.LogEvents.Count() == 0) { 
  
  <p>No results found</p>
  
- <% } else { %>
+ } else { 
  
  <div>
  <table>
@@ -96,54 +100,52 @@
  </th>
  </tr>
  
- <% int i = 0;  foreach (var item in Model.LogEvents)
- { %>
- 
- <tralt" : "" %>">
+@{int i = 0;  
+ foreach (var item in Model.LogEvents)
+ { 
+ <tr>
  <td>
- <%: Html.ActionLink("Details", "Details", new { id = item.Id.ToString(), loggerProviderName = item.LoggerProviderName })%>
+ @Html.ActionLink("Details", "Details", new { id = item.Id.ToString(), loggerProviderName = item.LoggerProviderName })
  </td>
  <td>
- <%: i.ToString() %>
+ @i.ToString() 
  </td>
  <td>
- <%: item.LoggerProviderName%>
+ @item.LoggerProviderName
  </td>
  <td style='white-space: nowrap;'>
- <%: String.Format("{0:g}", item.LogDate.ToLocalTime())%>
+ @String.Format("{0:g}", item.LogDate.ToLocalTime())
  </td>
  <td style='white-space: nowrap;'>
- <%: item.LogDate.ToLocalTime().TimeAgoString()%>
+ @item.LogDate.ToLocalTime().TimeAgoString()
  </td>
  <td>
- <%: item.MachineName%>
+ @item.MachineName
  </td>
  <td>
- <%: item.Source%>
+ @item.Source
  </td>
  <td>
- <pre><%: item.Message.WordWrap(80) %></pre>
+ <pre>@item.Message.WordWrap(80) </pre>
  </td>
  <td>
- <%: item.Type%>
+ @item.Type
  </td>
  <td>
- <%: item.Level.ToLower().ToPascalCase() %>
+ @item.Level.ToLower().ToPascalCase() 
  </td>
  </tr>
- 
- <% } %>
+}} 
  
  </table>
  </div>
- 
- <% } %>
- 
- <div>
+} 
  
  <div>
+ 
  <div>
- <%= Html.Pager(ViewData.Model.LogEvents.PageSize, ViewData.Model.LogEvents.PageNumber, ViewData.Model.LogEvents.TotalItemCount, new { LogType = ViewData["LogType"], Period = ViewData["Period"], PageSize = ViewData["PageSize"] })%>
+ <div>
+ @Html.Pager(ViewData.Model.LogEvents.PageSize, ViewData.Model.LogEvents.PageNumber, ViewData.Model.LogEvents.TotalItemCount, new { LogType = ViewData["LogType"], Period = ViewData["Period"], PageSize = ViewData["PageSize"] })
  </div>
  </div>
  

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using MvcPaging;
-using IDSM.Logging.Models;
+using IDSM.Logging;
+using IDSM.Logging.Services.Paging;
+using IDSM.Model;
 
 namespace IDSM.ViewModels
 {

@@ -6,11 +6,12 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
-using IDSM.Logging.Log4Net;
 using MvcPaging;
+using IDSM.Logging.Services.Logging.Log4Net;
 
 namespace IDSM.Controllers
 {
+            [Authorize]
     public class GameController : Controller
     {
         IGameRepository _GameRepository;
@@ -18,7 +19,8 @@ namespace IDSM.Controllers
 
         public GameController(IGameRepository gameRepo, IUserTeamRepository userRepo)
         {
-            // don't need this now thanks to UNITY?  or dependency injection?  are they the same thing?
+            // Using dependency injection with Unity
+            // we don't need to resolve the model isntances here anymore - unity handles this.
             //_UserRepository = userRepo ?? ModelContainer.Instance.Resolve<UserRepository>();
             //_PlayerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
             _GameRepository = gameRepo;

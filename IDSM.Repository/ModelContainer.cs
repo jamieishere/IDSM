@@ -27,6 +27,8 @@ namespace IDSM.Model
             get
             {
                 // HierarchicalLifetimeManager is necessary for disposal issues caused by unity... or something - 'serving html5/json content, vid 5/6'
+                // See http://unitymvc3.codeplex.com/
+                // "important to note that any types that you want to be disposed at the end of the request must be given a lifetime of HierarchicalLifetimeManager"
                 _Instance.RegisterType<IUserTeamRepository, UserTeamRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IPlayerRepository, PlayerRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IGameRepository, GameRepository>(new HierarchicalLifetimeManager());

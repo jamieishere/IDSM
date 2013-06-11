@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using IDSM.Logging.Models.Repository;
+using IDSM.Repository;
 using IDSM.ViewModels;
 using IDSM.Helpers;
-using MvcPaging;
-
+using IDSM.Logging.Repository;
+using IDSM.Logging.Helpers;
 
 namespace IDSM.Controllers
 {

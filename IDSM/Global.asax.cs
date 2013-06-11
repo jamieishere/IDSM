@@ -14,7 +14,7 @@ using System.Web.Routing;
 
 using System.Web.Security;
 using WebMatrix.WebData;
-using IDSM.Logging.Elmah;
+using IDSM.Logging.Services.Logging.Elmah;
 
 namespace IDSM
 {
@@ -25,6 +25,7 @@ namespace IDSM
     {
         protected void Application_Start()
         {
+            WebSecurity.InitializeDatabaseConnection("IDSMContext", "UserProfile", "UserId", "UserName", true);
             Database.SetInitializer<IDSMContext>(new DBInitialiser());
             //Database.SetInitializer<IDSMContext>(new DropCreateDatabaseIfModelChanges<IDSMContext>());
             //Database.SetInitializer<IDSMContext>(new DropCreateDatabaseAlways<IDSMContext>());
@@ -37,22 +38,18 @@ namespace IDSM
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AuthConfig.RegisterAuth();
 
-            //ViewEngines.Engines.Add(new RazorViewEngine());
-
+            // Set Unity as our dependency resolved
+            // see http://unitymvc3.codeplex.com/
+            // "If you are not using the NuGet package, you will need to register the DependencyResolver and set up the Unity container yourself."
+            // thought I was using the nuget package though..
             DependencyResolver.SetResolver(new UnityDependencyResolver(ModelContainer.Instance));
 
-            WebSecurity.InitializeDatabaseConnection("IDSMContext", "UserProfile", "UserId", "UserName", true);
-
-            // Setup our custom controller factory so that the [HandleErrorWithElmah] attribute
-            // is automatically injected into all of the controllers
+            // For ELMAH
+            // Setup our custom controller factory so that the [HandleErrorWithElmah] attribute is automatically injected into all of the controllers
             ControllerBuilder.Current.SetControllerFactory(new ErrorHandlingControllerFactory());
 
+            // For Log4Net
             log4net.Config.XmlConfigurator.Configure();
-
-
-
-
-
         }
     }
 }

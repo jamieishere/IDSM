@@ -95,6 +95,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -198,61 +199,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\HTMLPrefixScopeExtensions.cs" />
-    <Compile Include="Helpers\Logging\DateTimeExtensionMethods.cs" />
-    <Compile Include="Helpers\Logging\DateTimeHelper.cs" />
-    <Compile Include="Helpers\Logging\FormsHelper.cs" />
-    <Compile Include="Helpers\Logging\FuzzyDateTime.cs" />
-    <Compile Include="Helpers\Logging\StringExtensionMethods.cs" />
-    <Compile Include="Helpers\Logging\UrlHelperExtensions.cs" />
-    <Compile Include="Helpers\Logging\TimePeriodHelper.cs" />
     <Compile Include="Helpers\UnityDependencyResolver.cs" />
-    <Compile Include="Logging\Elmah\ErrorHandlingActionInvoker.cs" />
-    <Compile Include="Logging\Elmah\ErrorHandlingControllerFactory.cs" />
-    <Compile Include="Logging\Elmah\HandleErrorWithElmahAttribute.cs" />
-    <Compile Include="Logging\Log4Net\ILogger.cs" />
-    <Compile Include="Logging\Log4Net\Log4NetLogger.cs" />
-    <Compile Include="Logging\Log4Net\LogEvent.cs" />
-    <Compile Include="Logging\Log4Net\LogUtility.cs" />
-    <Compile Include="Logging\Models\ELMAH_Error.cs">
-      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Logging\Models\Log4Net_Error.cs">
-      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Logging\Models\LogEvent.cs" />
-    <Compile Include="Logging\Models\MvcLoggingDemoContainer.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>MvcLoggingDemoContainer.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Logging\Models\MvcLoggingDemoContainer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>MvcLoggingDemoContainer.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Logging\Models\MvcLoggingDemoContainer.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\ElmahRepository.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\ILogReportingFacade.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\ILogReportingRepository.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\Log4NetRepository.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\LogConfigurationSection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Logging\Models\Repository\LogReportingFacade.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Migrations\201304302024507_InitialCreate.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.Designer.cs">
       <DependentUpon>201304302024507_InitialCreate.cs</DependentUpon>
@@ -260,7 +207,9 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\ChosenTeamViewModel.cs" />
-    <Compile Include="ViewModels\LoggingIndexModel.cs" />
+    <Compile Include="ViewModels\LoggingIndexModel.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ViewModels\SearchViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -330,23 +279,6 @@
     <Content Include="Content\themes\base\minified\jquery.ui.tooltip.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <EntityDeploy Include="Logging\Models\MvcLoggingDemoContainer.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>MvcLoggingDemoContainer.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Logging\Models\MvcLoggingDemoContainer.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
-      <LastGenOutput>MvcLoggingDemoContainer.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="Logging\Models\MvcLoggingDemoContainer.edmx.diagram">
-      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
-    </Content>
-    <Content Include="Logging\Models\MvcLoggingDemoContainer.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>MvcLoggingDemoContainer.edmx</DependentUpon>
-      <LastGenOutput>MvcLoggingDemoContainer.cs</LastGenOutput>
-    </Content>
     <Content Include="Views\Logging\Index.cshtml" />
     <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
@@ -437,6 +369,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IDSM.Logging\IDSM.Logging.csproj">
+      <Project>{6aa8fe81-0b46-4c46-9b63-dd855f5514a5}</Project>
+      <Name>IDSM.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IDSM.Model\IDSM.Model.csproj">
       <Project>{783b4f05-99cc-486f-a050-db85ee346f7a}</Project>
       <Name>IDSM.Model</Name>
