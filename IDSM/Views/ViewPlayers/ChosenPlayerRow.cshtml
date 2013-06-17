@@ -6,6 +6,7 @@
     @using(Html.BeginCollectionItem("players")) {
         <p>@Html.DisplayFor(m=>m.Name)<a href="#" class="deleteRow">delete</a></p>
         
+         @Html.HiddenFor(m=>m.Id)
         @Html.HiddenFor(m=>m.Name)
         @Html.HiddenFor(m=>m.Nation)
         @Html.HiddenFor(m=>m.Club)

@@ -45,6 +45,18 @@ namespace IDSM.Repository
             }
         }
 
+        public IEnumerable<UserTeam_Player> GetAllChosenPlayers(int gameid)
+        {
+            using (DataContext)
+            {
+                //var pl = DataContext.UserTeam_Players.ToList();
+                var chosenPlayers = from cp in DataContext.UserTeam_Players
+                              where cp.GameId == gameid
+                              select cp;
+                return chosenPlayers;
+            }
+        }
+
         public IEnumerable<string> GetAllClubs()
         {
             using (DataContext)

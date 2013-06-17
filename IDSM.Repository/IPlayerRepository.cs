@@ -12,5 +12,6 @@ namespace IDSM.Repository
         Player GetPlayer(int playerid);
         IEnumerable<Player> GetAllPlayers();
         IEnumerable<string> GetAllClubs();
+        IEnumerable<UserTeam_Player> GetAllChosenPlayers(int gameid);
     }
 }

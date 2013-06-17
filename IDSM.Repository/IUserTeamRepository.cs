@@ -14,6 +14,7 @@ namespace IDSM.Repository
 
         UserTeam GetUserTeam(int userteamid, int userid, int gameid);
         //List<UserTeam> GetAllUserTeamsForGame(int gameid);
+        IEnumerable<UserTeam> GetAllUserTeams();
         OperationStatus CreateUserTeam(int userid, int gameid);
         OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<Player> players);
 

@@ -5,10 +5,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-using MvcLoggingDemo.Models;
-using MvcLoggingDemo.Services.Paging;
+using IDSM.Logging;
+using IDSM.Logging.Services.Paging;
+using IDSM.Model;
 
-namespace MvcLoggingDemo.ViewModels
+namespace IDSM.ViewModels
 {
     public class LoggingManageModel
     {

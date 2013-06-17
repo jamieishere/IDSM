@@ -15,37 +15,33 @@ namespace IDSM.Controllers
 {
     public class ViewPlayersController : Controller
     {
-        //IAccountRepository _AccountRepository;
-        //ISecurityRepository _SecurityRepository;
-        //IMarketsAndNewsRepository _MarketRepository;
-        IUserTeamRepository _UserRepository;
-        IPlayerRepository _PlayerRepository;
-
+        IUserTeamRepository _userRepository;
+        IPlayerRepository _playerRepository;
 
         ///<summary>
         /// ViewPlayers constructor
         ///</summary>
         ///<remarks>
-        /// Parameter types are interfaces - means the actual repository is NOT hardcoded, thus we can pass in different instances for testing etc
-        /// As a fall back (if the parameters are null, ie called the constructor without passing anything), we COULD hard code our default repositories
-        ///     Instead we do dependency injection using Microsoft Unity
         ///</remarks>
         public ViewPlayersController(IUserTeamRepository userRepo, IPlayerRepository playerRepo)
         {
             //_UserRepository = userRepo ?? ModelContainer.Instance.Resolve<UserRepository>();
-            //_PlayerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
-            _UserRepository = userRepo;
-            _PlayerRepository = playerRepo;
+            //_playerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
+            _userRepository = userRepo;
+            _playerRepository = playerRepo;
         }
 
         [HttpPost]
-        //public ActionResult Index(IEnumerable<Player> players)
         public ActionResult Index(ChosenTeamViewModel ct)
         {
-            //var ur = new UserRepository();
-            //var pr = new PlayerRepository();
-            var opStatus = new OperationStatus() { Status = false };
-            ViewBag.footballClub = new SelectList(_PlayerRepository.GetAllClubs());
+            var OpStatus = new OperationStatus() { Status = false };
+            ViewBag.FootballClub = new SelectList(_playerRepository.GetAllClubs());
+
+            
+// so now, when a user goes to the game, chosenplayers is populated on load from the DB
+// when reading out players for the search list, check if they are in the (chosenlist)
+//--- if they are it needs to be greyed out..
+
 
             //Get UserID  WebMatrix.WebData.WebSecurity.CurrentUserId
             //Old way - Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;  
@@ -59,21 +55,22 @@ namespace IDSM.Controllers
 
             // OK THIS WORKED.  MVC basically figures out from the formcollection how to bind to a viewmodel.  nice.  however still dont get why that players.index is needed.  what happens to it on binging?  does it just get discarded?
                 
-            opStatus = _UserRepository.SaveUserTeam(ct.GameID, ct.UserTeamID, ct.Players);
+            OpStatus = _userRepository.SaveUserTeam(ct.GameID, ct.UserTeamID, ct.Players);
 
-            if (!opStatus.Status)
+            if (!OpStatus.Status)
             {
-                ViewBag.OperationStatus = opStatus;
+                ViewBag.OperationStatus = OpStatus;
             }
-            return View(new SearchViewModel() { Players_SearchedFor = _PlayerRepository.GetAllPlayers(), Players_Chosen = new List<Player>() });
+            return View(new SearchViewModel() { Players_SearchedFor = _playerRepository.GetAllPlayers(), Players_Chosen = new List<Player>() });
         }
 
-        public ActionResult Index(string footballClub, string searchString)
+        public ActionResult Index(string footballClub, string searchString, int gameid)
         {
             //var pr = new PlayerRepository();
 
             //probably needs refactoring to handle errors better in the get methods, also i need to undertsand IList/List
-            // for example - its' better to use IList - why exactly
+            // for example - its' better to use IList - why exactly? i guess because you can switch out for 
+            // or ienumerable/iqueryable..... 
             // when i changed footballplayers to IList (either in repository or in here), this footballPlayers.Where(s => s.Name.Contains(searchString));  
             //    doesnt work - says cannot convert inermuable to ilist
             //    could only get it to work if GetAllPlayers(); returned an IEnumerable<Player> rather than IList<Player> or List<Player>
@@ -94,18 +91,32 @@ namespace IDSM.Controllers
             // also need to undersatsnd the disposed tracker... - how does the context get dispaosed everytime, and.. ah i get it. i use the same one for all repositorys.. i need to get rid then use again creating a new... if its disposed, then i wanna create new
             // still need to undsertand the code tho
 
-            // ok now.. got no players in my model
-
-            //need to understand mocking and uninty...
-
-            //ViewBag.RouteId();
-
-
 
             // get all clubs
-            ViewBag.footballClub = new SelectList(_PlayerRepository.GetAllClubs());
+            ViewBag.FootballClub = new SelectList(_playerRepository.GetAllClubs());
             // get all players
-            var footballPlayers = _PlayerRepository.GetAllPlayers();
+            var FootballPlayers = _playerRepository.GetAllPlayers();
+
+
+            // i've got userteam players here.
+            // i am only interested in the list of Ids
+            // I don't actually want to exclude these from the list - I want to 'mark' them
+            // I need to create a viewmodel from players (use automapper) and add 1 field (alreadychosen)
+            // so, would be better to get an array of the usedplayerids, then loop through and where the playerid in FootballPlayers mathc, update the chosen value to true.
+            // i would prob do this with a for loop, but i bet there is a way to do it in linq... 
+            // maybe post my loop to codereview or to rob.....
+            //
+            //http://stackoverflow.com/questions/183791/how-would-you-do-a-not-in-query-with-linq
+
+            //
+            var ChosenPlayers = _playerRepository.GetAllChosenPlayers(gameid);
+
+            // need to use the ecept on the list on chosenplayers_playerid / players_id
+
+            //
+
+           // var answer = list1.Except(list2);
+
 
             // setup list of players chosen
             // IEnumerable<Player> chosenPlayers = new List<Player>();
@@ -114,17 +125,17 @@ namespace IDSM.Controllers
             if (!String.IsNullOrEmpty(searchString))
             {
                 //footballPlayers = footballPlayers.Where(s => s.Name.Contains(searchString)).ToList(); //don't need this unless footballplayers is a list
-                footballPlayers = footballPlayers.Where(s => s.Name.Contains(searchString));
+                FootballPlayers = FootballPlayers.Where(s => s.Name.Contains(searchString));
             }
 
             //chosenPlayers = footballPlayers.Take(1);
 
             //filter again to all players with same club
             if (string.IsNullOrEmpty(footballClub))
-                return View(new SearchViewModel() { Players_SearchedFor = footballPlayers, Players_Chosen = new List<Player>() });
+                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers, Players_Chosen = new List<Player>() });
             else
             {
-                return View(new SearchViewModel() { Players_SearchedFor = footballPlayers.Where(x => x.Club == footballClub), Players_Chosen = new List<Player>() });
+                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers.Where(x => x.Club == footballClub), Players_Chosen = new List<Player>() });
             }
 
         }
@@ -132,7 +143,7 @@ namespace IDSM.Controllers
         public PartialViewResult BlankPlayerRow(int id)
         {
             //var pr = new PlayerRepository();
-            Player player = _PlayerRepository.GetPlayer(id);
+            Player player = _playerRepository.GetPlayer(id);
             return PartialView("ChosenPlayerRow", player);
         }
 

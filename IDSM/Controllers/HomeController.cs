@@ -26,21 +26,21 @@ namespace IDSM.Controllers
             _repository = repository;
         }
 
-        public ActionResult Index()
+        public ViewResult Index()
         {
             ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
 
             return View();
         }
 
-        public ActionResult About()
+        public ViewResult About()
         {
             ViewBag.Message = "Your app description page.";
 
             return View();
         }
 
-        public ActionResult Contact()
+        public ViewResult Contact()
         {
             ViewBag.Message = "Your contact page.";
 

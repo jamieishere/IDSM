@@ -45,37 +45,44 @@ namespace IDSM.Logging.Repository
         /// <returns>A filtered list of log events</returns>
         public IQueryable<LogEvent> GetByDateRangeAndType(int pageIndex, int pageSize, DateTime start, DateTime end, string logLevel)
         {
-            IQueryable<LogEvent> list = (from a in _context.ELMAH_Error
-                                         where a.TimeUtc >= start && a.TimeUtc <= end
-                                         //&& (logLevel == "All" || logLevel == "Error")
-                                         && (logLevel == "Error")
-                                         select new LogEvent
-                                         {
-                                             IdType = "guid"
-                                           //,
-                                           //  Id = ""
-                                           ,
-                                             IdAsInteger = 0
-                                           ,
-                                             IdAsGuid = a.ErrorId
-                                           ,
-                                             LoggerProviderName = "Elmah"
-                                           ,
-                                             LogDate = a.TimeUtc
-                                           ,
-                                             MachineName = a.Host
-                                           ,
-                                             Message = a.Message
-                                           ,
-                                             Type = a.Type
-                                           ,
-                                             Level = "Error"
-                                           ,
-                                             Source = a.Source,
-                                             StackTrace = ""
-                                         }
+            IQueryable<LogEvent> list = null;
+
+            if((logLevel=="All")||(logLevel=="Error")){
+
+                list = (from a in _context.ELMAH_Error
+                                             where a.TimeUtc >= start && a.TimeUtc <= end
+                                             //&& (logLevel == "All" || logLevel == "Error")
+                                             //&& (logLevel == "All")
+                                             select new LogEvent
+                                             {
+                                                 IdType = "guid"
+                                                     //,
+                                                     //  Id = ""
+                                               ,
+                                                 IdAsInteger = 0
+                                               ,
+                                                 IdAsGuid = a.ErrorId
+                                               ,
+                                                 LoggerProviderName = "Elmah"
+                                               ,
+                                                 LogDate = a.TimeUtc
+                                               ,
+                                                 MachineName = a.Host
+                                               ,
+                                                 Message = a.Message
+                                               ,
+                                                 Type = a.Type
+                                               ,
+                                                 Level = "Error"
+                                               ,
+                                                 Source = a.Source,
+                                                 StackTrace = ""
+                                             });
+            }else{
+                list = (IQueryable<LogEvent>)Enumerable.Empty<LogEvent>();
+            }
                                         
-                                         );
+                                         
 
             return list;
         }

@@ -6,7 +6,8 @@ using System.Web.Mvc;
 using System.Web.Mvc.Ajax;
 
 //IDSM.Logging.Helpers
-namespace System.Web.Mvc
+//namespace System.Web.Mvc
+namespace IDSM.Logging.Helpers
 {
     /// <summary>
     /// Credits : This class is from the NerdDinner sample application

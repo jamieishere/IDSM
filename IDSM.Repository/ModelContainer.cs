@@ -1,6 +1,7 @@
 ﻿using IDSM.Repository;
 using Microsoft.Practices.Unity;
 using IDSM.Model;
+using IDSM.Wrapper;
 
 namespace IDSM.Model
 {
@@ -8,9 +9,8 @@ namespace IDSM.Model
     /// ModelContainer class
     ///</summary>
     ///<remarks>
-    /// See video  HTML5 and JSON, video 7.
+    /// See video  HTML5 and JSON, video 5/6/7.
     ///</remarks>
-    //This is a simplified version of the code shown in the videos
     //The instance of UnityContainer is created in the constructor 
     //rather than checking in the Instance property and performing a lock if needed
     public static class ModelContainer
@@ -26,13 +26,13 @@ namespace IDSM.Model
         {
             get
             {
-                // HierarchicalLifetimeManager is necessary for disposal issues caused by unity... or something - 'serving html5/json content, vid 5/6'
+                // HierarchicalLifetimeManager is necessary for disposal issues caused by unity... 
                 // See http://unitymvc3.codeplex.com/
                 // "important to note that any types that you want to be disposed at the end of the request must be given a lifetime of HierarchicalLifetimeManager"
                 _Instance.RegisterType<IUserTeamRepository, UserTeamRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IPlayerRepository, PlayerRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IGameRepository, GameRepository>(new HierarchicalLifetimeManager());
-
+                _Instance.RegisterType<IWebSecurityWrapper, WebSecurityWrapper>(new HierarchicalLifetimeManager());
                // _Instance.RegisterType<ILogReportingFacade, LogReportingFacade>(new HierarchicalLifetimeManager());
                 return _Instance;
             }

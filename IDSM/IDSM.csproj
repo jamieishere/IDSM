@@ -199,6 +199,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\HTMLPrefixScopeExtensions.cs" />
+    <Compile Include="Helpers\PlayerComparer.cs" />
     <Compile Include="Helpers\UnityDependencyResolver.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.Designer.cs">
@@ -210,6 +211,7 @@
     <Compile Include="ViewModels\LoggingIndexModel.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ViewModels\LoggingManageModel.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -280,6 +282,10 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Views\Logging\Index.cshtml" />
+    <Content Include="Views\Logging\Chart.cshtml" />
+    <Content Include="Views\Logging\Details.cshtml" />
+    <Content Include="Views\Logging\Manage.cshtml" />
+    <Content Include="Views\Logging\Search.cshtml" />
     <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />

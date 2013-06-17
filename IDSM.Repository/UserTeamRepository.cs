@@ -5,11 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IDSM.Logging.Services.Logging.Log4Net;
+
 
 namespace IDSM.Repository
 {
     public class UserTeamRepository : RepositoryBase<IDSMContext>, IUserTeamRepository
     {
+
+        public IEnumerable<UserTeam> GetAllUserTeams()
+        {
+            using (DataContext)
+            {
+                var ut = DataContext.UserTeams.ToList();
+                return ut;
+            }
+        }
 
         // Get a userteam base on UserTeamID, or based on GameID & UserID
         public UserTeam GetUserTeam(int userteamid = 0, int gameid = 0, int userid = 0)
@@ -69,6 +80,9 @@ namespace IDSM.Repository
                 {
                     return OperationStatus.CreateFromException("Error creating userteam.", ex);
                 }
+                Log4NetLogger logger = new Log4NetLogger();
+                logger.Info("Creating UserTeam: userid:"+userid+" gameid:"+gameid);
+
                 return new OperationStatus { Status = true, OperationID = ut.Id};
             }
         }

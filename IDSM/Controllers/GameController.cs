@@ -8,6 +8,8 @@ using System.Web.Mvc;
 using System.Web.Security;
 using MvcPaging;
 using IDSM.Logging.Services.Logging.Log4Net;
+using WebMatrix.WebData;
+using IDSM.Wrapper;
 
 namespace IDSM.Controllers
 {
@@ -16,8 +18,9 @@ namespace IDSM.Controllers
     {
         IGameRepository _GameRepository;
         IUserTeamRepository _UserTeamRepository;
+        IWebSecurityWrapper _wr;
 
-        public GameController(IGameRepository gameRepo, IUserTeamRepository userRepo)
+        public GameController(IGameRepository gameRepo, IUserTeamRepository userRepo, IWebSecurityWrapper wr)
         {
             // Using dependency injection with Unity
             // we don't need to resolve the model isntances here anymore - unity handles this.
@@ -25,14 +28,15 @@ namespace IDSM.Controllers
             //_PlayerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
             _GameRepository = gameRepo;
             _UserTeamRepository = userRepo;
+            _wr = wr;
         }
 
         //
         // GET: /Game/
 
-        public ActionResult Index()
+        public ViewResult Index()
         {
-             ViewBag.ErrorMessage = "this is the error message";
+           //  ViewBag.ErrorMessage = "this is the error message";
             var games = _GameRepository.GetAllGames();
             return View(games);
         }
@@ -62,69 +66,41 @@ namespace IDSM.Controllers
         }
 
         // Get: /Game/JoinGame
-        public ActionResult JoinGame(int gameid)
+       // public RedirectToRouteResult JoinGame(int gameid, IWebSecurityWrapper wr)
+        public RedirectToRouteResult JoinGame(int gameid)
         {
-            // get current userid & along with game id, create a userteam
-
-            //Get UserID  WebMatrix.WebData.WebSecurity.CurrentUserId
+            
             //Old way - Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;  
             //also, set a cache value so don't have to hit the Db everytime Cache.Add(User.Identity.Name, user.UserID); // Key: Username; Value: Guid.
+           int UserID =  _wr.CurrentUserId; //WebSecurity.CurrentUserId;      
+            //Membership.GetUser().UserName
 
-            // ok need to add a 'getuser' method to userrepository first ... nah. i just need th id ...
-            // ok need to think this thru a bit.... all i really need here is the id o fhte user & the game...
-            // its overkill faffing getting users... may need to refactor.. its cos i use the datacontext method of saving - where i need to use an
-            // instance of the actual userteam... which reqquires an instance of the user....  nah actually that is ok.. i think.. doesnt require DB access, just requires creation of 'dummy' instances..
-            // is that good practice????
-
-            // create dummy user instance with the ID i have.  only have the GUID.  need to get the ID from the GUID.  so need a new method in teh userrepo for this...
-            // is there a better way?
-
-            int UserID = WebMatrix.WebData.WebSecurity.CurrentUserId;
-          //  Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;
-
-            // was just heppenin that no id was on the querystring
-            // guessing this was that the operationstatus status was false ..
- 
-            // want the check if a record exists in the userteam table with current user id & game id
-            // if it doesnt, create it
-            // return the userteamID
-            // this is business logic really, so i want to pull out of the controller?
-
-            
-
-            Log4NetLogger logger2 = new Log4NetLogger();
-            logger2.Info("Test message for Log4Net");
-
-            
-
-            //nned to figure out how i want to do this - where should the logic go - i moved itno here as i thoguth bestt to keep create & get separeate
-            // but now it complicates the logic in here
+            // get userteam for this user and this game
             UserTeam ut = _UserTeamRepository.GetUserTeam(userteamid:0, gameid: gameid, userid: UserID);
             int intUTID = 0;
             if (ut == null)
             {
+                // no userteam found, create it
                 OperationStatus opStatus = _UserTeamRepository.CreateUserTeam(UserID, gameid);
                 if (opStatus.Status) intUTID = (int)opStatus.OperationID;
             }
             else {intUTID = ut.Id; }
-            
-
-            // need logging .
-
+            //intUTID = 0;
             if (intUTID > 0)
             {
                 return RedirectToAction("Index", "ViewPlayers", new { id = intUTID });
             }
             else
             {
-                // do some logging. actually, no need - logging will be done within OperationStatus
-                ViewBag.ErrorMessage = "this is the error message";//opStatus.ExceptionMessage;
-                // do need a better way to handle the error than  just returning to the same page & not saying what happened.
-                // so do want to display the message on screen really
+                Log4NetLogger logger2 = new Log4NetLogger();
+                logger2.Error("JoinGame - no userteam found, none created either. userid:"+UserID+" gameid:"+gameid);
+
+                // can't set a viewbag value as MVC is stateless.  must pass an error message to the action.
+                // need to set route values.
+                TempData["err"] = "There was an error.  The administrator has been informed.";
+
                 return RedirectToAction("Index", "Game");
             }
-
-            
         }
 
         //

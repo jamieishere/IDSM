@@ -33,6 +33,11 @@ namespace IDSM.Repository
             };
         }
 
+        public IEnumerable<UserTeam_Player> GetAllChosenPlayers(int gameid)
+        {
+            return new List<UserTeam_Player>();
+        }
+
         public IEnumerable<string> GetAllClubs()
         {
             return new List<string>

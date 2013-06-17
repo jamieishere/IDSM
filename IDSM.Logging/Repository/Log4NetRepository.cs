@@ -44,10 +44,16 @@ namespace IDSM.Logging.Repository
         /// <returns>A filtered list of log events</returns>
         public IQueryable<LogEvent> GetByDateRangeAndType(int pageIndex, int pageSize, DateTime start, DateTime end, string logLevel)
         {
-            IQueryable<LogEvent> list = (from b in _context.Log4Net_Error
+            IQueryable<LogEvent> list = null;
+
+            //if ((logLevel == "All") || (logLevel == "Error"))
+            //{
+             list = (from b in _context.Log4Net_Error
                                          where b.Date >= start && b.Date <= end
-                                         //&& (b.Level == logLevel || logLevel == "All")
-                                         && (logLevel == "Error")
+                                         && b.Level == logLevel
+                                         // think a linq bug prevents checking for All here too...
+                                         //&& ((b.Level == logLevel) || (logLevel == "All"))
+                                        // && (logLevel == "Error")
                                          select new LogEvent
                                          {
                                             // IdType = "number"
@@ -76,6 +82,47 @@ namespace IDSM.Logging.Repository
                                          ,
                                              StackTrace = ""
                                          });
+
+            //            }else{
+            //                list = (IQueryable<LogEvent>)Enumerable.Empty<LogEvent>();
+            //}
+
+             if ((logLevel == "All"))
+             {
+                 list = (from b in _context.Log4Net_Error
+                         where b.Date >= start && b.Date <= end
+                         // think a linq bug prevents checking for All here too...
+                         //&& ((b.Level == logLevel) || (logLevel == "All"))
+                         // && (logLevel == "Error")
+                         select new LogEvent
+                         {
+                             // IdType = "number"
+                             IdType = "guid"
+                                 //,
+                                 //    Id = ""
+                         ,
+                             IdAsInteger = 0,
+                             //    IdAsInteger = b.Id //0 //b.Id  think log4net has changed and now uses GUID for it's ID?
+                             //    ,
+                             IdAsGuid = b.Id // Guid.NewGuid() //IdAsGuid = b.Id // Guid.NewGuid()
+                         ,
+                             LoggerProviderName = "Log4Net"
+                         ,
+                             LogDate = b.Date
+                         ,
+                             MachineName = b.Thread
+                         ,
+                             Message = b.Message
+                         ,
+                             Type = ""
+                         ,
+                             Level = b.Level
+                         ,
+                             Source = b.Thread
+                         ,
+                             StackTrace = ""
+                         });
+             }
 
             return list;
         }

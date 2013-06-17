@@ -41,7 +41,6 @@ namespace IDSM
             // Set Unity as our dependency resolved
             // see http://unitymvc3.codeplex.com/
             // "If you are not using the NuGet package, you will need to register the DependencyResolver and set up the Unity container yourself."
-            // thought I was using the nuget package though..
             DependencyResolver.SetResolver(new UnityDependencyResolver(ModelContainer.Instance));
 
             // For ELMAH

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace MvcLoggingDemo.Models.Google.Visualization
+namespace IDSM.Logging.Services.Charting.Google.Visualisation
 {
     public class ChartColumn
     {

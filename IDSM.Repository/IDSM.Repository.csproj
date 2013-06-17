@@ -84,6 +84,10 @@
     <Compile Include="UserTeamRepository.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IDSM.Logging\IDSM.Logging.csproj">
+      <Project>{6aa8fe81-0b46-4c46-9b63-dd855f5514a5}</Project>
+      <Name>IDSM.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IDSM.Model\IDSM.Model.csproj">
       <Project>{783b4f05-99cc-486f-a050-db85ee346f7a}</Project>
       <Name>IDSM.Model</Name>
