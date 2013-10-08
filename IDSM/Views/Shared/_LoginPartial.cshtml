@@ -6,6 +6,7 @@
             <a href="javascript:document.getElementById('logoutForm').submit()">Log off</a>
         }
     </text>
+     @Html.Partial("_AdminPartial")
 } else {
     <ul>
         <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>

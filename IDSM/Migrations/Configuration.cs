@@ -44,6 +44,14 @@ namespace IDSM.Models
                 WebSecurity.CreateUserAndAccount(
                     "jamie_admin",
                     "password");
+            if (!WebSecurity.UserExists("user1"))
+                WebSecurity.CreateUserAndAccount(
+                    "user1",
+                    "password");
+            if (!WebSecurity.UserExists("user2"))
+                WebSecurity.CreateUserAndAccount(
+                    "user2",
+                    "password");
 
             if (!Roles.GetRolesForUser("jamie_admin").Contains("Administrator"))
                 Roles.AddUsersToRoles(new[] { "jamie_admin" }, new[] { "Administrator" });

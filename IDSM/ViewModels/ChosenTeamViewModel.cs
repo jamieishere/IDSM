@@ -11,7 +11,8 @@ namespace IDSM.ViewModel
 {
     public class ChosenTeamViewModel
     {
-        public IEnumerable<Player> Players { get; set; }
+        public IEnumerable<UserTeam_Player> UserTeam_Players { get; set; }
+        //public IEnumerable<Player> Players { get; set; }
         public int GameID { get; set; }
         public int UserTeamID { get; set; }
     }

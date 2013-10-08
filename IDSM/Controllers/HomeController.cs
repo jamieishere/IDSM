@@ -28,21 +28,21 @@ namespace IDSM.Controllers
 
         public ViewResult Index()
         {
-            ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
+            ViewBag.Message = "The best waste of time.";
 
             return View();
         }
 
         public ViewResult About()
         {
-            ViewBag.Message = "Your app description page.";
+            ViewBag.Message = "Your mum.";
 
             return View();
         }
 
         public ViewResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
+            ViewBag.Message = "Nothing here yet.  Contact Jamie or Chrissy.";
 
             return View();
         }

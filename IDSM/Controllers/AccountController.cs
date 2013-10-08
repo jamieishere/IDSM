@@ -9,7 +9,7 @@ using DotNetOpenAuth.AspNet;
 using Microsoft.Web.WebPages.OAuth;
 using WebMatrix.WebData;
 using IDSM.Filters;
-using IDSM.Models;
+using IDSM.Model;
 using IDSM.Repository;
 
 namespace IDSM.Controllers

@@ -1,0 +1,30 @@
+﻿@model IDSM.ViewModel.AddUserTeamViewModel
+
+@{
+    ViewBag.Title = "Add UserTeam";
+}
+
+<h2>Add player to the game <i> @Model.Game.Name </i></h2>
+@*<h2>Username: @Model.GameId</h2>*@
+
+<table>
+    <tr>
+        <th>
+            Player List
+        </th>
+        <th>
+        </th>
+    </tr>
+
+@foreach (var item in Model.Users) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.UserName)
+        </td>
+        <td>
+            @Html.ActionLink("Add", "AddUserToGame", new {userId = item.UserId , gameId = Model.Game.Id})
+        </td>
+    </tr>
+}
+
+</table>

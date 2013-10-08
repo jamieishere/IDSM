@@ -13,6 +13,15 @@ namespace IDSM
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            routes.MapRoute("ViewPlayers", "ViewPlayers/{userTeamId}",
+                new
+                {
+                    controller = "ViewPlayers",
+                    action = "Index",
+                    userTeamId = UrlParameter.Optional
+                },
+                new { userTeamId = @"\d+" });
+
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

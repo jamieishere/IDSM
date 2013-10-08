@@ -45,15 +45,38 @@ namespace IDSM.Repository
             }
         }
 
-        public IEnumerable<UserTeam_Player> GetAllChosenPlayers(int gameid)
+        // why i've chosen an in array over a list
+        // http://stackoverflow.com/questions/434761/array-versus-listt-when-to-use-which
+        // basically - this will get called every single time the viewplayers page is loaded.  it give very marginal performance increase.
+        public int[] GetAllChosenPlayerIdsForGame(int gameid) 
         {
             using (DataContext)
             {
                 //var pl = DataContext.UserTeam_Players.ToList();
                 var chosenPlayers = from cp in DataContext.UserTeam_Players
                               where cp.GameId == gameid
-                              select cp;
-                return chosenPlayers;
+                              select cp.PlayerId;
+                return chosenPlayers.ToArray();
+            }
+        }
+
+        // this should bhe in the game repo
+        public IEnumerable<UserTeam_Player> GetAllChosenPlayersForGame(int gameid)
+        {
+            using (DataContext)
+            {
+                var chosenPlayers = DataContext.UserTeam_Players.Include("Player").ToList().Where(p => p.GameId ==gameid);
+                return chosenPlayers.ToList();
+            }
+        }
+
+        // this should bhe in the userteam repo
+        public IEnumerable<UserTeam_Player> GetAllChosenPlayersForUserTeam(int userTeamId)
+        {
+            using (DataContext)
+            {
+                var chosenPlayers = DataContext.UserTeam_Players.Include("Player").ToList().Where(p => p.UserTeamId == userTeamId);
+                return chosenPlayers.ToList();
             }
         }
 

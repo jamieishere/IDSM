@@ -528,10 +528,12 @@ input[type="checkbox"].input-validation-error {
 /* tables
 ----------------------------------------------------------*/
 table {
-    border-collapse: collapse;
+    border-collapse: separate;
     border-spacing: 0;
     margin-top: 0.75em;
     border: 0 none;
+    padding:10px;
+    border-spacing:10px;
 }
 
 th {
@@ -754,3 +756,9 @@ tr.pager td {
             margin: 0;
         }
 }
+
+
+    /* IDSM Specific Styles
+    ----------------------------------------------------------*/
+       .userteams .currentplayer{color:green;}
+   .userteams a{color:red;}

@@ -23,5 +23,6 @@ namespace IDSM.Model
         public int PixelPosY { get; set; }
 
         public virtual UserTeam UserTeam{ get; set; }
+        public virtual Player Player { get; set; }
     }
 }

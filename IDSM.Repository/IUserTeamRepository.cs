@@ -12,15 +12,19 @@ namespace IDSM.Repository
         //User GetUser(int userid);
         //List<User> GetAllUsersForGame(int gameid);
 
-        UserTeam GetUserTeam(int userteamid, int userid, int gameid);
-        //List<UserTeam> GetAllUserTeamsForGame(int gameid);
+        UserTeam GetUserTeam(int userTeamId, int gameId, int userId);
+        List<UserTeam> GetAllUserTeamsForGame(int gameid, string orderBy);
         IEnumerable<UserTeam> GetAllUserTeams();
-        OperationStatus CreateUserTeam(int userid, int gameid);
-        OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<Player> players);
+        UserTeam GetUserTeamByOrderPosition(int orderPosition, int gameId);
+        OperationStatus CreateUserTeam(int userId, int gameId);
+        OperationStatus DeleteUserTeam(UserTeam userTeam);
+        //OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<Player> players);
+        OperationStatus SaveUserTeam(UserTeam team);
+        OperationStatus SaveUserTeam(int userTeamId, int gameId, IEnumerable<UserTeam_Player> userTeamPlayers);
 
         //UserTeam_Player GetUserTeamPlayer(int userteamplayerid);
         //List<UserTeam_Player> GetAllUserTeamPlayers(int userteamid);
-        OperationStatus SaveUserTeamPlayer(int userteamid, int  gameid, int pixelposy, int pixelposx, int playerid);
+        OperationStatus SaveUserTeamPlayer(int userTeamId, int  gameId, int pixelPosY, int pixelPosX, int playerId);
 
         //Banter GetBanterItem(int banterid);
         //List<Banter> GetAllBanterForThisUserTeam(int userteamid);

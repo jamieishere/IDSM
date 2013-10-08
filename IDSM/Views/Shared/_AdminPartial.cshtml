@@ -1,0 +1,3 @@
+﻿@if (Request.IsAuthenticated && User.Identity.Name == "jamie_admin") {
+       <ul style="display:inline; border:1px solid black; padding:0px; list-style:none;margin:0px;"><li style="border:1px solid black;padding:0px;margin:0px; list-style:none;">@Html.ActionLink("Upload", "Upload", "Home")</li></ul>
+}

@@ -9,62 +9,49 @@ using System.Web;
 using System.Web.Mvc;
 using Microsoft.Practices.Unity;
 using System.Web.Security;
+using System.Diagnostics;
 
 
 namespace IDSM.Controllers
 {
     public class ViewPlayersController : Controller
     {
-        IUserTeamRepository _userRepository;
+        IUserRepository _userRepository;
+        IUserTeamRepository _userTeamRepository;
         IPlayerRepository _playerRepository;
+        IGameRepository _gameRepository;
+
+        private const int _numPlayersInTeam = 1;
 
         ///<summary>
         /// ViewPlayers constructor
         ///</summary>
         ///<remarks>
         ///</remarks>
-        public ViewPlayersController(IUserTeamRepository userRepo, IPlayerRepository playerRepo)
+        public ViewPlayersController(IUserRepository userRepo, IPlayerRepository playerRepo, IGameRepository gameRepo, IUserTeamRepository userTeamRepo)
         {
             //_UserRepository = userRepo ?? ModelContainer.Instance.Resolve<UserRepository>();
             //_playerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
             _userRepository = userRepo;
             _playerRepository = playerRepo;
+            _gameRepository = gameRepo;
+            _userTeamRepository = userTeamRepo;
         }
 
-        [HttpPost]
-        public ActionResult Index(ChosenTeamViewModel ct)
-        {
-            var OpStatus = new OperationStatus() { Status = false };
-            ViewBag.FootballClub = new SelectList(_playerRepository.GetAllClubs());
+       
 
-            
-// so now, when a user goes to the game, chosenplayers is populated on load from the DB
-// when reading out players for the search list, check if they are in the (chosenlist)
-//--- if they are it needs to be greyed out..
-
-
-            //Get UserID  WebMatrix.WebData.WebSecurity.CurrentUserId
-            //Old way - Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;  
-            // also, set a cache value so don't have to hit the Db everytime Cache.Add(User.Identity.Name, user.UserID); // Key: Username; Value: Guid.
-
-            //i actually I don't need userID here, I need to return a viewmodel  so i can have the players and the userteam id...  not sure how to populate from the view tho
-            //userteam could be in the viewbag?  no, viewmodel is probaly better...
- 
-            // BUT... how do i create the viewmodel in BeginFormCollection?  Perhaps I just create a viewmodel that has players, userid, gameid as a poperty and then add those as hidden fields in the form?
-            //  even if this works, i still don't get how the form elements that BeginFormCollection lays down are needed. Why the first one players.index???
-
-            // OK THIS WORKED.  MVC basically figures out from the formcollection how to bind to a viewmodel.  nice.  however still dont get why that players.index is needed.  what happens to it on binging?  does it just get discarded?
-                
-            OpStatus = _userRepository.SaveUserTeam(ct.GameID, ct.UserTeamID, ct.Players);
-
-            if (!OpStatus.Status)
-            {
-                ViewBag.OperationStatus = OpStatus;
-            }
-            return View(new SearchViewModel() { Players_SearchedFor = _playerRepository.GetAllPlayers(), Players_Chosen = new List<Player>() });
-        }
-
-        public ActionResult Index(string footballClub, string searchString, int gameid)
+        /// <summary>
+        /// Index ActionResult
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <param name="footballClub"></param>
+        /// <param name="searchString"></param>
+        /// <returns>Index View</returns>
+        /// <remarks>
+        /// TODO:
+        /// Caching.
+        /// </remarks>
+        public ActionResult Index(int userTeamId, string footballClub, string searchString)
         {
             //var pr = new PlayerRepository();
 
@@ -92,24 +79,73 @@ namespace IDSM.Controllers
             // still need to undsertand the code tho
 
 
+
             // get all clubs
             ViewBag.FootballClub = new SelectList(_playerRepository.GetAllClubs());
             // get all players
-            var FootballPlayers = _playerRepository.GetAllPlayers();
+            var FootballPlayers = _playerRepository.GetAllPlayers(); //(IList<Player>)
 
 
-            // i've got userteam players here.
-            // i am only interested in the list of Ids
-            // I don't actually want to exclude these from the list - I want to 'mark' them
-            // I need to create a viewmodel from players (use automapper) and add 1 field (alreadychosen)
-            // so, would be better to get an array of the usedplayerids, then loop through and where the playerid in FootballPlayers mathc, update the chosen value to true.
-            // i would prob do this with a for loop, but i bet there is a way to do it in linq... 
-            // maybe post my loop to codereview or to rob.....
+
+
+
+            // Need to map the player model to a viewmodel that includes the property 'HasBeenChosen'
+            // Need to get the ChosenPlayers from the database (only need IDs)
+            // Need to find all the players in FootballPlayers who's ID is in the ChosenPlayers list/array
+            // and set HasBeenChosen to true
+
+            // Either do a forloop (but for 100,000+players that's a lot
+            // Or... do it a different way...
+            // ask stack.
+            //var result = GetMyIEnumerable()
+            //   .ToList();
+            //result.ForEach(x => x.property1 = 100);
+
+            // THIS IS HOW TO DO IT
+            //http://stackoverflow.com/questions/2984045/linq-c-where-foreach-using-index-in-a-list-array
+
+            //http://stackoverflow.com/questions/1924535/c-any-benefit-of-listt-foreach-over-plain-foreach-loop
+
             //
             //http://stackoverflow.com/questions/183791/how-would-you-do-a-not-in-query-with-linq
 
-            //
-            var ChosenPlayers = _playerRepository.GetAllChosenPlayers(gameid);
+            UserTeam ut = new UserTeam();
+            ut = _userTeamRepository.GetUserTeam(userTeamId,0,0);
+            // 
+            int[] ChosenPlayerIDs = _playerRepository.GetAllChosenPlayerIdsForGame(ut.GameId);
+
+            Game g = _gameRepository.GetGame(ut.GameId);
+
+            //IEnumerable<Player> ChosenPlayers = new List<Player>();
+            IEnumerable<UserTeam_Player> ChosenPlayers = _playerRepository.GetAllChosenPlayersForUserTeam(ut.Id);
+           
+            //why aren't players accessible from chosenplayers?
+            //maybe they are
+            // don't understand the difference between .Include and ... joins
+
+            // if i want to change this to get FootballPLayers - ChosenPlayers, then I need to change the GetAllChosenPlayers to return IList<Player> instead of 
+            // IList<UserTeam_Player> - should probably do this anyway - the method name is misleading currently.
+            // however, if i do this I can't 'blank out' players in the view to show they have been chosen, they just wouldn't appear in the list.
+            // if i DO want to do this, use .Except:
+            //var finalplayers = FootballPlayers.Except(ChosenPlayers);
+
+            // do i want to foreach over the football players or the chosen playerss???
+            // how will i decide
+            // i want to see if the current footballplayerid is in the chosen player list
+
+            //for (int i = 0; i < ChosenPlayers.Length; i++)
+            //  //  someNames.setInfo(i, "blah");
+            //}
+
+           // for(int i = 0; i < FootballPlayers.Length; i++){
+            foreach (Player p in FootballPlayers){
+                // someNames.setInfo(i, "blah");
+                if (ChosenPlayerIDs.Contains(p.Id))
+                {
+                    p.HasBeenChosen = true;
+                }
+            }
+
 
             // need to use the ecept on the list on chosenplayers_playerid / players_id
 
@@ -119,7 +155,7 @@ namespace IDSM.Controllers
 
 
             // setup list of players chosen
-            // IEnumerable<Player> chosenPlayers = new List<Player>();
+           
 
             //filter to all players containing searchstring
             if (!String.IsNullOrEmpty(searchString))
@@ -128,24 +164,233 @@ namespace IDSM.Controllers
                 FootballPlayers = FootballPlayers.Where(s => s.Name.Contains(searchString));
             }
 
+
+            //get game.currentorderposition
+            //get userteam.currentorder
+            //get the userteam via orderposition and gameid
+            string _addedPlayerMessage = "Current player is {0}.  There are {1} turns left before your go.";
+            
+            //@Model.ActiveUserName.  There are @Model.TurnsLeft before your go." + ut.User.UserName;
+            string _tmpActiveUserName;
+            int _tmpTurnsLeft = 0;
+
+            if (g.HasEnded)
+            {
+                _addedPlayerMessage = "The game has ended.";
+            }
+            else
+            {
+                List<UserTeam> uts = _userTeamRepository.GetAllUserTeamsForGame(g.Id, "Id");
+
+                //get activeuserteam
+                if (ut.OrderPosition != g.CurrentOrderPosition)
+                {
+                    UserTeam _activeUt = _userTeamRepository.GetUserTeamByOrderPosition(g.CurrentOrderPosition, g.Id);
+                    _tmpActiveUserName = _activeUt.User.UserName;
+                    switch (_activeUt.OrderPosition > ut.OrderPosition)
+                    {
+                        case true:
+                            _tmpTurnsLeft = (ut.OrderPosition == uts.Count) ? 1 : _activeUt.OrderPosition - ut.OrderPosition;
+                            break;
+                        case false:
+                            _tmpTurnsLeft = (ut.OrderPosition == uts.Count) ? 1 : ut.OrderPosition - _activeUt.OrderPosition;
+                            break;
+                    }
+
+                    _addedPlayerMessage = String.Format(_addedPlayerMessage, _tmpActiveUserName, _tmpTurnsLeft);
+                }
+                else
+                {
+                   // _tmpActiveUserName = ut.User.UserName;
+
+                }
+            }
+
             //chosenPlayers = footballPlayers.Take(1);
 
             //filter again to all players with same club
             if (string.IsNullOrEmpty(footballClub))
-                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers, Players_Chosen = new List<Player>() });
+                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers, Players_Chosen = ChosenPlayers, GameId = ut.GameId, GameName=g.Name, GameCurrentOrderPosition=g.CurrentOrderPosition, UserTeamId = ut.Id, UserName = ut.User.UserName, UserTeamOrderPosition= ut.OrderPosition, AddedPlayerMessage = _addedPlayerMessage});
             else
             {
-                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers.Where(x => x.Club == footballClub), Players_Chosen = new List<Player>() });
+                return View(new SearchViewModel() { Players_SearchedFor = FootballPlayers.Where(x => x.Club == footballClub), Players_Chosen = ChosenPlayers, GameId = ut.GameId, GameName = g.Name, GameCurrentOrderPosition = g.CurrentOrderPosition, UserTeamId = ut.UserId, UserName = ut.User.UserName, UserTeamOrderPosition = ut.OrderPosition, AddedPlayerMessage = _addedPlayerMessage});
             }
 
         }
 
-        public PartialViewResult BlankPlayerRow(int id)
+        public ActionResult AddPlayer(int id, int userteamid, int gameId)
+        //public PartialViewResult BlankPlayerRow(int id, int userteamid, int gameId)
         {
-            //var pr = new PlayerRepository();
+            var pr = new PlayerRepository();
             Player player = _playerRepository.GetPlayer(id);
-            return PartialView("ChosenPlayerRow", player);
+
+            //create a userteam player using this player
+            UserTeam_Player utplayer = new UserTeam_Player();
+            utplayer.PlayerId = id;
+            utplayer.Player = player;
+
+            //    //***********************************************************
+            //    // TODO:
+            //    // Prevent duplicates being created.
+            //    var ut = new UserTeamRepository();
+            //    ut.SaveUserTeamPlayer(userteamid, gameId, 1, 1, id);
+            //    //***********************************************************
+            var ut = new UserTeamRepository();
+            OperationStatus op = ut.SaveUserTeamPlayer(userteamid, gameId, 1, 1, id);
+
+            //update game currentorderposition
+
+            //add player.
+            //if operationstatus = true
+            //need to move game on 1 turn.
+            //get currentorderposition
+            //get totalteamcount
+            //get playersinteamcount
+            //get maxplayercount
+
+            //check if we have a winner
+            // if we are on the last team, AND playersinteamcount=maxplayercount
+                // if ((currentorderposition+1) == totalteamcount) && 
+            //move currentoderposition +1 
+            //unless
+            //currentorderposition+1 = teamcount
+            //inwhich case it's 0 (backtostart)
+
+            //now check if we have winner
+            //winner if currenorderposition, teamcoutn, teamplayercount=maxplayercount
+
+            Game game = _gameRepository.GetGame(gameId);
+            List<UserTeam> uts = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
+            int _utCount = uts.Count;
+            List<UserTeam_Player> utps = (List<UserTeam_Player>)_playerRepository.GetAllChosenPlayersForUserTeam(userteamid);
+            if ((utps.Count == _numPlayersInTeam) && (game.CurrentOrderPosition+1 == _utCount))
+            {
+                game.HasEnded = true;
+                game.WinnerId = CalculateWinner(gameId);
+                game.CurrentOrderPosition = -10; //arbitrary integer to ensure it is no userteam's 'go'.
+
+            }
+            else
+            {
+                int _currentOrderPosition = game.CurrentOrderPosition;
+                game.CurrentOrderPosition = ((_currentOrderPosition + 1) == uts.Count) ? 0 : _currentOrderPosition + 1;
+            }
+
+
+
+
+
+            // if number of chosenplayers for this userteam = numplayersinteam, and this is the last userteam, calculate the winner
+           
+
+            _gameRepository.UpdateGame(game);
+
+            return RedirectToAction("Index", new { userteamid = userteamid });
+            //return Redirect("Index", new { userteamid = userteamid });
         }
+
+        
+
+        ///<summary>
+        /// CalculateWinner
+        ///</summary>
+        ///<remarks>
+        /// takes gameid, gets userteams, runs through each userteam, calculates score for each, selects winner, returns id
+        ///</remarks>
+        private int CalculateWinner(int gameId)
+        {
+            //topscore = list TopScores
+            int _tempScore;
+            TopScore _topScore = new TopScore();
+            List<UserTeam> _userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId,"Id");
+            List<UserTeam_Player> _players = new List<UserTeam_Player> { };
+
+            foreach (UserTeam team in _userTeams)
+            {
+                _players = (List<UserTeam_Player>)_playerRepository.GetAllChosenPlayersForUserTeam(team.Id);
+                _tempScore = 0;
+                foreach (UserTeam_Player player in _players)
+                {
+                    _tempScore = _tempScore + player.Player.Age;
+                }
+                if (_tempScore > _topScore._score)
+                {
+                    _topScore._userTeamId = team.Id;
+                    _topScore._score = _tempScore;
+                }
+            }
+            return _topScore._userTeamId;
+        }
+
+        protected struct TopScore
+        {
+            public int _userTeamId{get;set;}
+            public int _score { get; set; }
+        }
+
+
+        ///<summary>
+        /// ViewPlayers Index action
+        ///<remarks>
+        /// Unused action - previously used in conjunction with BlankPlayerRow & ChosenTeamViewModel - when user submitted player choises, the posted form values would be auto bound to the ChosenTeamViewModel and saved to the database.
+        ///</remarks>
+        //[HttpPost]
+        //public ActionResult Index(ChosenTeamViewModel ct)
+        //{
+        //    var OpStatus = new OperationStatus() { Status = false };
+        //    ViewBag.FootballClub = new SelectList(_playerRepository.GetAllClubs());
+
+        //    Debug.Assert(ct.UserTeam_Players != null);
+        //    OpStatus = _userTeamRepository.SaveUserTeam(ct.UserTeamID, ct.GameID, ct.UserTeam_Players);
+
+        //    if (!OpStatus.Status)
+        //    {
+        //        ViewBag.OperationStatus = OpStatus;
+        //    }
+
+        //    return RedirectToAction("Index", "ViewPlayers", new { userTeamId = ct.UserTeamID });
+        //}
+
+        /////<summary>
+        ///// ViewResult BlankPlayerRow
+        /////<remarks>
+        ///// Unused.  Utilised HTMLPrefix Extension method BeginCollectionItem to create a dynamic list.
+        /////</remarks>
+        //public PartialViewResult BlankPlayerRow(int id, int userteamid, int gameId)
+        //{
+        //    var pr = new PlayerRepository();
+        //    Player player = _playerRepository.GetPlayer(id);
+        
+        //    //create a userteam player using this player
+        //    UserTeam_Player utplayer = new UserTeam_Player();
+        //    utplayer.PlayerId = id;
+        //    utplayer.Player = player;
+
+        //    //***********************************************************
+        //    // TODO:
+        //    // Prevent duplicates being created.
+        //    var ut = new UserTeamRepository();
+        //    ut.SaveUserTeamPlayer(userteamid, gameId, 1, 1, id);
+        //    //***********************************************************
+
+        //    //update game currentorderposition
+        //    Game game = _gameRepository.GetGame(gameId);
+        //    List<UserTeam> uts = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
+        //    int _utCount = uts.Count;
+        //    int _currentOrderPosition = game.CurrentOrderPosition;
+        //    game.CurrentOrderPosition = ((_currentOrderPosition + 1) == uts.Count) ? 0 : _currentOrderPosition + 1;
+
+        //    List<UserTeam_Player> utps = (List<UserTeam_Player>)_playerRepository.GetAllChosenPlayersForUserTeam(userteamid);
+
+        //    if ((utps.Count == _numPlayersInTeam) && (game.CurrentOrderPosition == _utCount - 1))
+        //    {
+        //        game.HasEnded = true;
+        //        game.WinnerId = CalculateWinner(gameId);
+        //    }
+
+        //    _gameRepository.UpdateGame(game);
+        //    return PartialView("ChosenPlayerRow", utplayer);
+        //}
 
     }
 }

@@ -28,7 +28,8 @@ namespace IDSM.Tests.Controllers
             Game game = new Game();
             ICollection<UserTeam> uteams = null; 
             UserTeam ut = new UserTeam();
-            ICollection<UserTeam_Player> utp = null;
+            //ICollection<UserTeam_Player> utp = null;
+            IList<UserTeam_Player> utp = null;
 
             List<Game> games = new List<Game>
             {
@@ -44,13 +45,14 @@ namespace IDSM.Tests.Controllers
             Mock<IGameRepository> mockGameRepository = new Mock<IGameRepository>();
             Mock<IUserTeamRepository> mockUserTeamRepository = new Mock<IUserTeamRepository>();
             Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
+            Mock<IUserRepository> mockUserRepository = new Mock<IUserRepository>();
 
             // Return all the Games
             mockGameRepository.Setup(mr => mr.GetAllGames()).Returns(games);
             mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(userteams);
 
             //Arrange
-            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object);
+            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object, mockUserRepository.Object);
 
             //Act
             ViewResult result = Controller.Index();
@@ -69,7 +71,8 @@ namespace IDSM.Tests.Controllers
             Game game = new Game();
             ICollection<UserTeam> uteams = null;
             UserTeam ut = new UserTeam();
-            ICollection<UserTeam_Player> utp = null;
+            //ICollection<UserTeam_Player> utp = null;
+            IList<UserTeam_Player> utp = null;
 
             List<Game> games = new List<Game>
             {
@@ -88,6 +91,7 @@ namespace IDSM.Tests.Controllers
             // like the above 2, it doesn't work... (currentuserid remains 0, not 1)...
             // so how do the above 2 work sucessfully?  ah, that's it - they dont contain VALUES.
             Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
+            Mock<IUserRepository> mockUserRepository = new Mock<IUserRepository>();
 
             // Setup 'mock' methods with dummy parameters to replace the method calls in the controller
             mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(userteams);
@@ -96,7 +100,8 @@ namespace IDSM.Tests.Controllers
             mockWSW.Setup(x => x.CurrentUserId).Returns(1);
 
             //Arrange
-            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object);
+           // GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object);
+            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object, mockUserRepository.Object);
 
             //http://stackoverflow.com/questions/11245059/how-to-mock-httpcontext-so-that-it-is-not-null-from-a-unit-test
             //http://www.emadibrahim.com/2008/04/04/unit-test-linq-to-sql-in-aspnet-mvc-with-moq/
@@ -114,7 +119,7 @@ namespace IDSM.Tests.Controllers
             //  when i replace int UserID = wr.CurrentUserId;  with int UserID = 1; in  joingame, the test passes.
 
             //RedirectToRouteResult result = Controller.JoinGame(1, mockWSW.Object);
-            RedirectToRouteResult result = Controller.JoinGame(1);
+            RedirectToRouteResult result = Controller.ManageUserTeam(1, 1);
 
            // Assert.That(result.RouteName, Is.EqualTo("Index"));
             Assert.AreEqual("Index", result.RouteValues["action"]);

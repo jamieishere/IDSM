@@ -5,59 +5,115 @@
     ViewBag.Title = "ViewPlayers";
 }
 
-<h2>ViewPlayers</h2>
+<h2>@Model.UserName's team for the game <i>@Model.GameName</i></h2>
+
+<div id="dialog-confirm" title="Add Player?">
+  <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Do you want to add this player?</p>
+</div>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $(".addItem").click(function () {
-            $.ajax({
-                url: this.href,
-                cache: false,
-                success: function (data) { $("#ChosenPlayerRows").append(data); return false; }
-            });
-            return false;
+    var addLinkObj;
+
+    $(function () {
+        $("#dialog-confirm").dialog({
+            autoOpen: false,
+            resizable: false,
+            height: 140,
+            modal: true,
+            buttons: {
+                "Are you sure you want to add this player?": function () {
+                    var path = $(this).data('link').href; // Get the stored result
+                    
+                    $.ajax({
+                        url: path,//this.href, // this is getting the whole page, not the action result here.  can't use 'this' here
+                        cache: false,
+                        // NOTE: 
+                        // no longer using dynamic list appending, so just want to do default action
+                        //success: function (data) { $("#ChosenPlayerRows").append(data); return false; }
+                        success: function (data) { return true; }
+                    });
+                    $(this).hide();
+                    //$(path).hide();
+                    $(this).dialog("close");
+                    addLinkObj.hide();
+                    //location.reload(); - this is preferable (pretty sure hiding the add rows is hackable, but it causes weird stuff to happen, page crashes.
+                    return true;
+                },
+                Cancel: function () {
+                    $(this).dialog("close");
+                }
+            }
         });
-        // depreciated in 1.7
-        //$("a.deleteRow").on("click", function () {
-        //    $(this).parents("div.playerRow:first").remove();
-        //    return false;
-        //});
     });
-    $(document).on("click","a.deleteRow", function () {
+
+    $(document).ready(function () {
+
+        $(".addItem").click(function (event) {
+            addLinkObj = $(this);  //for future use
+          // event.preventDefault(); // this stops the calling entity (the link) from processing it's default function (to redirect to the href)... we pass the url to the dilog below in the data method, and process that there
+            // jquery dialog: http://stackoverflow.com/questions/15548073/how-to-create-the-confirm-box-in-mvc-controller
+            $("#dialog-confirm")
+                // data is a jquery method that stores data to be passed to the method
+                .data('link', this) // see http://stackoverflow.com/questions/394491/passing-data-to-a-jquery-ui-dialog/3458299#3458299
+                .dialog("open");
+            
+        });
+    });
+
+    $(document).on("click", "a.deleteRow", function () {
         $(this).parents("div.playerRow:first").remove();
         return false;
     });
+
 </script>
 
 @using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Post))
 {
 
 <div id="ChosenPlayerRows">
-        @foreach (var item in Model.Players_Chosen)
+    @*    @foreach (var item in Model.Players_Chosen)
         {
-            Html.RenderPartial("~/Views/Home/ChosenPlayerRow.cshtml", item);
-        }
+            Html.RenderPartial("~/Views/ViewPlayers/ChosenPlayerRow.cshtml", item);
+        }*@
+
+    @(Model.Players_Chosen
+    // .Each(@<span>@Html.Partial("~/Views/ViewPlayers/ChosenPlayerRow.cshtml", item)</span>)
+    .Each(@<div class="playerRow">@Html.Partial("~/Views/ViewPlayers/ChosenPlayerRow.cshtml", item)</div>)
+    .Else(
+        @<div class="playerRow">
+            <b>No Players Chosen Yet</b>
+         </div>
+        )
+)
+        
     </div>
-    <input type="hidden" name="GameID" value="1" />
-    <input type="hidden" name="UserTeamID" value="1" />
-<input type="submit" value="Save User Team" />
+    <input type="hidden" name="GameID" value="@Model.GameId" />
+    <input type="hidden" name="UserTeamID" value="@Model.UserTeamId" />
+@*<input type="submit" value="Save User Team" />*@
 }
     
-<p>
+@*<p>
     @Html.ActionLink("Create New", "Create")
-</p>
-@using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
+</p>*@
+
+@if(!(Model.GameCurrentOrderPosition == Model.UserTeamOrderPosition)){
+    <p>@Model.AddedPlayerMessage</p>
+}else{
+
+<h2>List of Footballers</h2>
+using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
 {
          <p> 
              Club: @Html.DropDownList("footballClub", "All")  
              Name: @Html.TextBox("SearchString") 
          <input type="submit" value="Filter" /></p>
 }
+@*
 <table>
     <tr>
         <th>
             @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Name)
-            @*@Html.DisplayNameFor(model => model.Players_SearchedFor[0].Name)* - this woudl work if PlayersSearchedFor was a LIST, not an IEnumerable*@
+            @Html.DisplayNameFor(model => model.Players_SearchedFor[0].Name)* - this woudl work if PlayersSearchedFor was a LIST, not an IEnumerable
         </th>
         <th>
             @Html.DisplayColumnNameFor(Model.Players_SearchedFor, m => m.Nation)
@@ -70,7 +126,7 @@
         </th>
         <th></th>
     </tr>
-</table>
+</table>*@
 <table>
 @foreach (var item in Model.Players_SearchedFor)
 {
@@ -91,12 +147,19 @@
             @Html.DisplayFor(modelItem => item.Position)
         </td>        
         <td>
-            @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-            @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-            <!-- creates an link that calls the action BlankPlayerRow, and adds a class to the link of 'additem' - see JQUERY above -->
-            @Html.ActionLink("Add this player", "BlankPlayerRow", new { id = item.Id }, new { @class = "addItem" })
+            @* @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+            @Html.ActionLink("Details", "Details", new { id = item.Id }) | 
+            @Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
+
+            @if(!item.HasBeenChosen){
+            <!-- creates an link that calls the action BlankPlayerRow, and adds a class to the link of 'additem' - see JQUERY above -->@*
+            @Html.ActionLink("Add to team", "BlankPlayerRow", new { id = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
+            }*@
+                 @Html.ActionLink("Add to team", "AddPlayer", new { id = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
+            }
         </td>
     </tr>
 }</table>
+    
+}
 

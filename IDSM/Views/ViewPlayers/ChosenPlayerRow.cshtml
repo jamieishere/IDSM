@@ -1,4 +1,21 @@
-﻿@model IDSM.Model.Player
+﻿@model IDSM.Model.UserTeam_Player
+@using IDSM.Helpers
+
+@*<div class="playerRow">*@
+
+    @using(Html.BeginCollectionItem("userteam_players")) {
+        <p>@Html.DisplayFor(m=>m.Player.Name)<a href="#" class="deleteRow">delete</a></p>
+        
+         @Html.HiddenFor(m=>m.Player.Id)
+        @Html.HiddenFor(m=>m.Player.Name)
+        @Html.HiddenFor(m=>m.Player.Nation)
+        @Html.HiddenFor(m=>m.Player.Club)
+        @Html.HiddenFor(m=>m.Player.Position)
+
+    }
+@*</div>  *@
+
+@*@model IDSM.Model.Player
 @using IDSM.Helpers
 
 <div class="playerRow">
@@ -6,11 +23,10 @@
     @using(Html.BeginCollectionItem("players")) {
         <p>@Html.DisplayFor(m=>m.Name)<a href="#" class="deleteRow">delete</a></p>
         
-         @Html.HiddenFor(m=>m.Id)
         @Html.HiddenFor(m=>m.Name)
         @Html.HiddenFor(m=>m.Nation)
         @Html.HiddenFor(m=>m.Club)
         @Html.HiddenFor(m=>m.Position)
 
     }
-</div>  
+</div>  *@

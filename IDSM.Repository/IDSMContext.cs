@@ -49,6 +49,13 @@ namespace IDSM.Repository
                     .HasForeignKey(i => i.CreatorId)
                     .WillCascadeOnDelete(false);
 
+                    modelBuilder.Entity<UserTeam>()
+                            .HasMany(u => u.UserTeam_Players)
+                            .WithRequired(i => i.UserTeam)
+                            .HasForeignKey(i => i.UserTeamId)
+                            .WillCascadeOnDelete(true);
+
+
                     // Remove the logging classes, as we already have a database for these
                     //modelBuilder.Ignore<LogEvent>();
 

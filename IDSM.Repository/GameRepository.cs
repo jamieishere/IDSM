@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +32,20 @@ namespace IDSM.Repository
         {
             using (DataContext)
             {
-                var gm = DataContext.Games.ToList();
+                //var gm = DataContext.Games.Include("UserTeams").ToList();
+              //  var gm = DataContext.Games.Include(ut => ut.UserTeams).Include("Users").Where.ToList();#
+                //var gm = DataContext.Games.Include("UserTeams").Include("Users").Where(u=>u.UserTeams..ToList();
+
+
+                // what is different nomenclature for this - using string, over using lambda?
+               // var gm = DataContext.Games.Include("UserTeams.User").ToList();
+                
+                var gm = DataContext.Games
+                     .Include(x => x.UserTeams)
+                     //.Include(x => x.UserTeams.Select(y => y.User).Where(z => z.UserId == 1))
+                     .Include(x => x.UserTeams.Select(y => y.User))
+                     .ToList();
+
                 return gm;
             }
         }
@@ -48,6 +63,33 @@ namespace IDSM.Repository
                 catch (Exception ex)
                 {
                     return OperationStatus.CreateFromException("Error saving game.", ex);
+                }
+                return new OperationStatus { Status = true };
+            }
+        }
+
+        public OperationStatus UpdateGame(Game game)
+        {
+            using (DataContext)
+            {
+                try
+                {
+                    var gm = DataContext.Games.Where(g => g.Id == game.Id).FirstOrDefault();
+
+                    if (gm != null)
+                    {
+                        gm.CreatorId = game.CreatorId;
+                        gm.CurrentOrderPosition = game.CurrentOrderPosition;
+                        gm.HasStarted = game.HasStarted;
+                        gm.Name = game.Name;
+                        gm.HasEnded = game.HasEnded;
+                        gm.WinnerId = game.WinnerId;
+                        DataContext.SaveChanges();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return OperationStatus.CreateFromException("Error updating userteam.", ex);
                 }
                 return new OperationStatus { Status = true };
             }

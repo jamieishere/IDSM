@@ -10,43 +10,62 @@ using MvcPaging;
 using IDSM.Logging.Services.Logging.Log4Net;
 using WebMatrix.WebData;
 using IDSM.Wrapper;
+using IDSM.ViewModel;
+using IDSM.Helpers;
+using IDSM.Exceptions;
 
 namespace IDSM.Controllers
 {
-            [Authorize]
+    [Authorize]
     public class GameController : Controller
     {
-        IGameRepository _GameRepository;
-        IUserTeamRepository _UserTeamRepository;
+        IGameRepository _gameRepository;
+        IUserTeamRepository _userTeamRepository;
+        IUserRepository _userRepository;
         IWebSecurityWrapper _wr;
 
-        public GameController(IGameRepository gameRepo, IUserTeamRepository userRepo, IWebSecurityWrapper wr)
+        /// <summary>
+        /// Constructor using dependency injection with Unity
+        /// </summary>
+        /// <param name="gameRepo"></param>
+        /// <param name="userTeamRepo"></param>
+        /// <param name="wr"></param>
+        /// <param name="userRepo"></param>
+        /// <remarks>
+        /// Model instances resolved in IDSM.Model.ModelContainer if not passed explicitly
+        /// Allowing them to be passed into constructor is basis of Unit Testing.
+        /// </remarks>
+        public GameController(IGameRepository gameRepo, IUserTeamRepository userTeamRepo, IWebSecurityWrapper wr, IUserRepository userRepo)
         {
-            // Using dependency injection with Unity
-            // we don't need to resolve the model isntances here anymore - unity handles this.
-            //_UserRepository = userRepo ?? ModelContainer.Instance.Resolve<UserRepository>();
-            //_PlayerRepository = playerRepo ?? ModelContainer.Instance.Resolve<PlayerRepository>();
-            _GameRepository = gameRepo;
-            _UserTeamRepository = userRepo;
+            _gameRepository = gameRepo;
+            _userTeamRepository = userTeamRepo;
+            _userRepository = userRepo;
             _wr = wr;
         }
 
         //
         // GET: /Game/
-
         public ViewResult Index()
         {
            //  ViewBag.ErrorMessage = "this is the error message";
-            var games = _GameRepository.GetAllGames();
-            return View(games);
+            var games = _gameRepository.GetAllGames();
+            //UserTeam _ut = _userTeamRepository.GetUserTeam(game
+            GameViewModel gvm = new GameViewModel { Games = games };
+            return View(gvm);
         }
 
-        //
-        // GET: /Game/Details/5
+        //public string GetWinnerName(int winnerid)
+        //{
+        //    UserTeam _ut = _userTeamRepository.GetUserTeam(winnerid, 0, 0);
+        //    string _winnerName;
+        //    _winnerName = _ut.User.UserName;
+        //    return _winnerName;
+        //}
+
 
         public ActionResult Details(int id)
         {
-            return View(_GameRepository.GetGame(id));
+            return View(_gameRepository.GetGame(id));
         }
 
         public ActionResult Create()
@@ -54,83 +73,137 @@ namespace IDSM.Controllers
             return View();
         }
 
-
-        //
-        // Post: /Game/Create
         [HttpPost]
         public ActionResult Create(Game game)
         {
-            var opStatus = _GameRepository.SaveGame(game.CreatorId, game.Name);
+            var opStatus = _gameRepository.SaveGame(game.CreatorId, game.Name);
 
-            return View("Index", _GameRepository.GetAllGames());
+            return View("Index", _gameRepository.GetAllGames());
         }
 
-        // Get: /Game/JoinGame
-       // public RedirectToRouteResult JoinGame(int gameid, IWebSecurityWrapper wr)
-        public RedirectToRouteResult JoinGame(int gameid)
+        /// <summary>
+        /// Redirect to View - ViewUsers
+        /// </summary>
+        /// <param name="_game"></param>
+        /// <returns></returns>
+        public ActionResult ViewUsers(Game _game)
         {
-            
-            //Old way - Guid userGuid = (Guid)Membership.GetUser().ProviderUserKey;  
-            //also, set a cache value so don't have to hit the Db everytime Cache.Add(User.Identity.Name, user.UserID); // Key: Username; Value: Guid.
-           int UserID =  _wr.CurrentUserId; //WebSecurity.CurrentUserId;      
-            //Membership.GetUser().UserName
+            // pass game model and list of all userteams - need a viewmodel.
+            IEnumerable<UserProfile> _users = _userRepository.GetAllUsers();
+            AddUserTeamViewModel _vm = new AddUserTeamViewModel() { Users = _users, Game = _game };
 
-            // get userteam for this user and this game
-            UserTeam ut = _UserTeamRepository.GetUserTeam(userteamid:0, gameid: gameid, userid: UserID);
+            return View(_vm);
+        }
+
+        /// <summary>
+        /// Deletes all userteams, sets game properties to default
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <returns>RedirectToAction - Index</returns>
+        ///<remarks></remarks>
+        public ActionResult ResetGame(int gameId)
+        {
+            //get all userteams for this game, delete
+            IEnumerable<UserTeam> userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
+            foreach (UserTeam team in userTeams)
+            {
+                //cascading delete setup for UserTeam - UserTeam_Players in IDSMContext
+                _userTeamRepository.DeleteUserTeam(team); 
+            }
+
+            //reset all game properties to default
+            Game game = _gameRepository.GetGame(gameId);
+            game.WinnerId = 0;
+            game.HasEnded = false;
+            game.HasStarted = false;
+            game.CurrentOrderPosition = 0;
+            _gameRepository.UpdateGame(game);
+
+            return RedirectToAction("Index");
+        }
+
+
+        /// <summary>
+        /// Instantiates game.  Shuffles UserTeams into random order, sets Game properties to 'started'
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <returns>RedirectToAction - Index</returns>
+        /// <remarks></remarks>
+        public ActionResult StartGame(int gameId)
+        {
+            List<UserTeam> _userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
+            _userTeams.Shuffle();
+            foreach(UserTeam team in _userTeams){
+                team.OrderPosition = _userTeams.IndexOf(team);
+                _userTeamRepository.SaveUserTeam(team);
+                //TODO: read what it says here about the command pattern & updating EF entities
+                //http://stackoverflow.com/questions/12616276/better-way-to-update-a-record-using-entity-framework
+            }
+
+            Game game = _gameRepository.GetGame(gameId);
+            game.HasStarted = true;
+            _gameRepository.UpdateGame(game);
+
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Adds selected User to this Game.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="gameId"></param>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        public ActionResult AddUserToGame(int userId, int gameId)
+        {
+            // check if userteam exists
+            UserTeam _ut = _userTeamRepository.GetUserTeam(userTeamId: 0, gameId: gameId, userId: userId);
             int intUTID = 0;
-            if (ut == null)
+            if (_ut == null)
             {
                 // no userteam found, create it
-                OperationStatus opStatus = _UserTeamRepository.CreateUserTeam(UserID, gameid);
+                OperationStatus opStatus = _userTeamRepository.CreateUserTeam(userId, gameId);
                 if (opStatus.Status) intUTID = (int)opStatus.OperationID;
             }
-            else {intUTID = ut.Id; }
-            //intUTID = 0;
-            if (intUTID > 0)
-            {
-                return RedirectToAction("Index", "ViewPlayers", new { id = intUTID });
-            }
-            else
-            {
-                Log4NetLogger logger2 = new Log4NetLogger();
-                logger2.Error("JoinGame - no userteam found, none created either. userid:"+UserID+" gameid:"+gameid);
+            else { intUTID = _ut.Id; }
 
-                // can't set a viewbag value as MVC is stateless.  must pass an error message to the action.
-                // need to set route values.
-                TempData["err"] = "There was an error.  The administrator has been informed.";
-
-                return RedirectToAction("Index", "Game");
-            }
+            return RedirectToAction("Index");
         }
 
-        //
-        // POST: /Game/Create
+        /// <summary>
+        /// Redirect to ViewPlayers for this game/user
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <param name="userId"></param>
+        /// <returns>RedirecToAction, or throws an error if can't find the userteam</returns>
+        public RedirectToRouteResult ManageUserTeam(int gameId, int? userId)
+        {
+            // get userteam for this user and this game
+            UserTeam ut = _userTeamRepository.GetUserTeam(userTeamId: 0, gameId: gameId, userId: (int)userId);
 
-        //[HttpPost]
-        //public ActionResult Create(FormCollection collection)
-        //{
-        //    try
-        //    {
-        //        // TODO: Add insert logic here
+            if (ut != null)
+            {
+                  return RedirectToAction("Index", "ViewPlayers", new { userTeamId = ut.Id });
+            }
+            else {
+                Log4NetLogger logger2 = new Log4NetLogger();
+                logger2.Error("JoinGame - no userteam found, none created either. userid:" + (int)userId + " gameid:" + gameId);
 
-        //        return RedirectToAction("Index");
-        //    }
-        //    catch
-        //    {
-        //        return View();
-        //    }
-        //}
+                //NOTE:
+                //Read this. 
+                //How to use ActionFilters - handleerrors, outputcache, ValidateAntiForgeryToken, etc
+                //http://blogs.msdn.com/b/gduthie/archive/2011/03/17/get-to-know-action-filters-in-asp-net-mvc-3-using-handleerror.aspx
 
-        //
-        // GET: /Game/Edit/5
+                UserTeamRepositoryException ex = new UserTeamRepositoryException() { Message = "Error. An error occurred while processing your request.  Something to do with UserTeams." };
+                throw ex;
+            }
+
+        }
 
         public ActionResult Edit(int id)
         {
             return View();
         }
-
-        //
-        // POST: /Game/Edit/5
 
         [HttpPost]
         public ActionResult Edit(int id, FormCollection collection)
@@ -147,16 +220,10 @@ namespace IDSM.Controllers
             }
         }
 
-        //
-        // GET: /Game/Delete/5
-
         public ActionResult Delete(int id)
         {
             return View();
         }
-
-        //
-        // POST: /Game/Delete/5
 
         [HttpPost]
         public ActionResult Delete(int id, FormCollection collection)

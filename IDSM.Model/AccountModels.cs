@@ -4,9 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Globalization;
-using IDSM.Model;
 
-namespace IDSM.Models
+namespace IDSM.Model
 {
     // remove this - http://stackoverflow.com/questions/12449126/asp-net-mvc-membership-code-first-existing-database
     //         seel also - http://odetocode.com/blogs/scott/archive/2012/09/23/perils-of-the-mvc4-accountcontroller.aspx
@@ -35,6 +34,12 @@ namespace IDSM.Models
         public UserProfile()
         {
             UserTeams = new HashSet<UserTeam>();
+        }
+
+        //constructor that populates the navigation properties
+        public UserProfile(int userId)
+        {
+            UserId = userId;
         }
 
         //navigation properties

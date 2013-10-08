@@ -32,6 +32,7 @@ namespace IDSM.Model
                 _Instance.RegisterType<IUserTeamRepository, UserTeamRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IPlayerRepository, PlayerRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IGameRepository, GameRepository>(new HierarchicalLifetimeManager());
+                _Instance.RegisterType<IUserRepository, UserRepository>(new HierarchicalLifetimeManager());
                 _Instance.RegisterType<IWebSecurityWrapper, WebSecurityWrapper>(new HierarchicalLifetimeManager());
                // _Instance.RegisterType<ILogReportingFacade, LogReportingFacade>(new HierarchicalLifetimeManager());
                 return _Instance;

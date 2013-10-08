@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using IDSM.Models;
 
 namespace IDSM.Model
 {
@@ -26,10 +25,17 @@ namespace IDSM.Model
         public int Id { get; set; }
         public int CreatorId { get; set; }
         public string Name { get; set; }
+        public int CurrentOrderPosition { get; set; }
+        public bool HasStarted { get; set; }
+        public bool HasEnded { get; set; }
+        public int WinnerId { get; set; }
+        //public int [] UserTeamIds { get; set; }
+
 
         //navigation properties
         public virtual UserProfile Creator { get; set; }
+        [ForeignKey("GameId")]
         public virtual ICollection<UserTeam> UserTeams { get; set; }
-        
+       // public virtual ICollection<UserProfile> Users { get; set; } // would be better to 'drill' into UserTeams to get Users, rather than do this?
     }
 }
