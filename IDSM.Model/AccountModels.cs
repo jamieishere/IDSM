@@ -7,44 +7,47 @@ using System.Globalization;
 
 namespace IDSM.Model
 {
-    // remove this - http://stackoverflow.com/questions/12449126/asp-net-mvc-membership-code-first-existing-database
-    //         seel also - http://odetocode.com/blogs/scott/archive/2012/09/23/perils-of-the-mvc4-accountcontroller.aspx
-    // and here (for how to move the call to initialize websecurity to the application start event - http://stackoverflow.com/questions/13207893/net-mvc-simple-membership-authentication-with-database
-    //public class UsersContext : DbContext
-    //{
-    //    public UsersContext()
-    //        //: base("DefaultConnection")
-    //        : base("IDSMContext")
-    //    {
-    //    }
-
-    //    public DbSet<UserProfile> UserProfiles { get; set; }
-    //}
-
+    /// <summary>
+    /// UsersContext
+    /// Removed class in remarks as per this link (http://stackoverflow.com/questions/12449126/asp-net-mvc-membership-code-first-existing-database)
+    /// This was to enable the merging of my existing models & DBContext with WebSecurity, which is what the AccountController uses
+    /// Needed to add a n intiialise websecurity call in the global.asax to replace this.
+    /// Also see
+    ///     http://odetocode.com/blogs/scott/archive/2012/09/23/perils-of-the-mvc4-accountcontroller.aspx
+    ///     http://stackoverflow.com/questions/13207893/net-mvc-simple-membership-authentication-with-database (initialise websecurity)
+    /// </summary>
+    /// <remarks>
+    ///public class UsersContext : DbContext
+    ///{
+    ///    public UsersContext()
+    ///        //: base("DefaultConnection")
+    ///        : base("IDSMContext")
+    ///    {
+    ///    }
+    ///    public DbSet<UserProfile> UserProfiles { get; set; }
+    ///}
+    ///</remarks>
     [Table("UserProfile")]
     public class UserProfile
     {
+        // are these attributes necessary?
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public int UserId { get; set; }
         public string UserName { get; set; }
-        public string test { get; set; }
 
         //constructor that populates the navigation properties
         public UserProfile()
         {
             UserTeams = new HashSet<UserTeam>();
-        }
-
-        //constructor that populates the navigation properties
-        public UserProfile(int userId)
-        {
-            UserId = userId;
+            Games = new HashSet<Game>();
+            //UserId = userId==null ? 0 : (int)userId;
         }
 
         //navigation properties
+        // is this attribute necessary?
+        [ForeignKey("UserId")]
         public virtual ICollection<UserTeam> UserTeams { get; set; }
-        [ForeignKey("CreatorId")]
         public virtual ICollection<Game> Games { get; set; }
     }
 

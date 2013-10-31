@@ -72,7 +72,6 @@
     <Compile Include="UserRepository.cs" />
     <Compile Include="IUserRepository.cs" />
     <Compile Include="DBInitialiser.cs" />
-    <Compile Include="FakePlayerRepository.cs" />
     <Compile Include="GameRepository.cs" />
     <Compile Include="IDisposedTracker.cs" />
     <Compile Include="IDSMContext.cs" />

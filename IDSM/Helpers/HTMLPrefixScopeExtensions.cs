@@ -7,6 +7,10 @@ using System.Linq.Expressions;
 
 namespace IDSM.Helpers
 {
+    ///<summary>
+    /// HtmlPrefixScopeExtensions
+    /// Extension methods for HtmlHelpers
+    ///</summary>
     public static class HtmlPrefixScopeExtensions
     {
         private const string idsToReuseKey = "__htmlPrefixScopeExtensions_IdsToReuse_";

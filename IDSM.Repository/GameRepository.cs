@@ -5,56 +5,77 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IDSM.Logging.Services.Logging;
+using IDSM.Logging.Services.Logging.Log4Net;
 using IDSM.Model;
 
 namespace IDSM.Repository
 {
+    /// <summary>
+    /// GameRepository
+    /// Contains all methods that access/manipulate Games within IDSMContext
+    /// </summary>
     public class GameRepository : RepositoryBase<IDSMContext>, IGameRepository
     {
+        /// <summary>
+        /// GetGame
+        /// Get single Game by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Game</returns>
         public Game GetGame(int id)
         {
+            // using is the same as try/finally & automatically disposes of the datacontext on error
             using (DataContext)
             {
-                var gm = DataContext.Games.SingleOrDefault(s => s.Id == id);
-                if (gm == null)
+                var _game = DataContext.Games.SingleOrDefault(s => s.Id == id);
+                if (_game == null)
                 {
-                    // either return null or throw error not found.
+                    return null;
                 }
-                if (gm is Game)
-                {
-                    // do nothing
-                }
-                return gm;
+                return _game;
             }
         }
 
+        /// <summary>
+        /// GetAllGames
+        /// Gets all Games
+        /// </summary>
+        /// <returns>IEnumerable<Game></returns>
         public IEnumerable<Game> GetAllGames()
         {
             using (DataContext)
-            {
-                //var gm = DataContext.Games.Include("UserTeams").ToList();
-              //  var gm = DataContext.Games.Include(ut => ut.UserTeams).Include("Users").Where.ToList();#
-                //var gm = DataContext.Games.Include("UserTeams").Include("Users").Where(u=>u.UserTeams..ToList();
-
-
-                // what is different nomenclature for this - using string, over using lambda?
-               // var gm = DataContext.Games.Include("UserTeams.User").ToList();
-                
-                var gm = DataContext.Games
+            {             
+                var _games = DataContext.Games
                      .Include(x => x.UserTeams)
-                     //.Include(x => x.UserTeams.Select(y => y.User).Where(z => z.UserId == 1))
-                     .Include(x => x.UserTeams.Select(y => y.User))
+                     //.Include(x => x.UserTeams.Select(y => y.User))
                      .ToList();
-
-                return gm;
+                if (_games == null)
+                {
+                    // log error
+                    return null;
+                }
+                return _games;
             }
         }
 
-        public OperationStatus SaveGame(int creatorid, string name)
+        /// <summary>
+        /// SaveGame
+        /// Creates/Adds a new Game object to the Context, saves to the database
+        /// </summary>
+        /// <param name="creatorId"></param>
+        /// <param name="name"></param>
+        /// <returns>OperationStatus</returns>
+        /// <remarks>
+        /// TODO:
+        /// Update logger so it takes a single opStatus OperationStatus object as parameter.
+        /// Requires updating logging project.
+        /// </remarks>
+        public OperationStatus CreateGame(int creatorId, string name)
         {
             using (DataContext)
             {
-                Game game = new Game() { CreatorId = creatorid, Name = name };
+                Game game = new Game() { CreatorId = creatorId, Name = name };
                 try
                 {
                     DataContext.Games.Add(game);
@@ -62,12 +83,21 @@ namespace IDSM.Repository
                 }
                 catch (Exception ex)
                 {
-                    return OperationStatus.CreateFromException("Error saving game.", ex);
+                    OperationStatus _opStatus = OperationStatus.CreateFromException("Error creating Game. CreatorId = "+creatorId+", name = "+name, ex);
+                    ILogger _logger = LogFactory.Logger();
+                    _logger.Error(_opStatus.Message, ex);
+                    return _opStatus;
                 }
                 return new OperationStatus { Status = true };
             }
         }
 
+        /// <summary>
+        /// UpdateGame
+        /// Takes a game object, gets same object from Context, manually maps all properties to avoid mass assignment security issues, calls .SaveChanges()
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns>OperationStatus</returns>
         public OperationStatus UpdateGame(Game game)
         {
             using (DataContext)
@@ -89,7 +119,10 @@ namespace IDSM.Repository
                 }
                 catch (Exception ex)
                 {
-                    return OperationStatus.CreateFromException("Error updating userteam.", ex);
+                    OperationStatus _opStatus = OperationStatus.CreateFromException("Error updating Game, Id="+ game.Id, ex);
+                    Log4NetLogger _logger = new Log4NetLogger();
+                    _logger.Error(_opStatus.Message, ex);
+                    return _opStatus;
                 }
                 return new OperationStatus { Status = true };
             }

@@ -13,24 +13,22 @@ namespace IDSM.Helpers
 {
 
     ///<summary>
-    /// ListHelpers
-    /// Presently extension methods for lists
+    /// ListExtensions
+    /// Etension methods for List
     ///</summary>
     ///<remarks>
     ///</remarks>
-    public static class ThreadSafeRandom
-    {
-        [ThreadStatic]
-        private static Random Local;
 
-        public static Random ThisThreadsRandom
-        {
-            get { return Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId))); }
-        }
-    }
-
-    static class MyExtensions
+    static class ListExtensions
     {
+        ///<summary>
+        /// Shuffle
+        /// Randomly shuffles a list order
+        ///</summary>
+        ///<param name="list"></param>
+        ///<remarks>
+        ///Rquired to randomly shuffle the UserTeams into an order of play when a game is started.
+        ///</remarks>
         public static void Shuffle<T>(this IList<T> list)
         {
             int n = list.Count;
@@ -42,6 +40,17 @@ namespace IDSM.Helpers
                 list[k] = list[n];
                 list[n] = value;
             }
+        }
+    }
+
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic]
+        private static Random Local;
+
+        public static Random ThisThreadsRandom
+        {
+            get { return Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId))); }
         }
     }
 }

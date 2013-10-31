@@ -13,53 +13,64 @@ using IDSM.Repository;
 using IDSM.Model;
 using IDSM.Tests.Factories;
 using IDSM.Wrapper;
+using Ploeh.AutoFixture;
+using IDSM.Logging.Services.Logging.Log4Net;
+using IDSM.Logging.Services.Logging;
 
 namespace IDSM.Tests.Controllers
 {
     [TestFixture]
     public class GameControllerTest
     {
+        Fixture _fixture;
+        UserProfile _creator;
+        UserProfile _user;
+        Game _game;
+        ICollection<UserTeam> _uteams;
+        UserTeam _ut;
+        IList<UserTeam_Player> _utp;
+        List<Game> _games;
+        List<UserTeam> _userteams;
+        Mock<IGameRepository> _mockGameRepository;
+        Mock<IUserTeamRepository> _mockUserTeamRepository;
+        Mock<IWebSecurityWrapper> _mockWSW;
+        Mock<IUserRepository> _mockUserRepository;
+        
+        public GameControllerTest()
+        {
+            _fixture = new Fixture();
+            _creator = _fixture.Create<UserProfile>();
+            _user = _fixture.Create<UserProfile>();
+            _game = _fixture.Create<Game>();
+            _uteams = new HashSet<UserTeam>();
+            _ut = _fixture.Create<UserTeam>();
+            _utp = null;
+            _games = _fixture.Create<List<Game>>();
+            _userteams = _fixture.Create<List<UserTeam>>();
+
+            // Mock the Players Repository using Moq
+            _mockGameRepository = new Mock<IGameRepository>();
+            _mockUserTeamRepository = new Mock<IUserTeamRepository>();
+            _mockWSW = new Mock<IWebSecurityWrapper>();
+            _mockUserRepository = new Mock<IUserRepository>();
+        }
+
         [Test]
         public void Game_Index_Returns_ViewResult()
         {
-            // create some mock players to play with
-            UserProfile creator = new UserProfile();
-            UserProfile user = new UserProfile();
-            Game game = new Game();
-            ICollection<UserTeam> uteams = null; 
-            UserTeam ut = new UserTeam();
-            //ICollection<UserTeam_Player> utp = null;
-            IList<UserTeam_Player> utp = null;
-
-            List<Game> games = new List<Game>
-            {
-                new Game { Id = 1, CreatorId = 1, Name = "Game1", Creator = creator, UserTeams=uteams},
-            };
-
-            List<UserTeam> userteams = new List<UserTeam>
-            {
-                new UserTeam {Id=1, UserId = 1, GameId=1, User=user, Game = game, UserTeam_Players=utp}
-            };
-
-            // Mock the Players Repository using Moq
-            Mock<IGameRepository> mockGameRepository = new Mock<IGameRepository>();
-            Mock<IUserTeamRepository> mockUserTeamRepository = new Mock<IUserTeamRepository>();
-            Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
-            Mock<IUserRepository> mockUserRepository = new Mock<IUserRepository>();
 
             // Return all the Games
-            mockGameRepository.Setup(mr => mr.GetAllGames()).Returns(games);
-            mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(userteams);
+            _mockGameRepository.Setup(mr => mr.GetAllGames()).Returns(_games);
+            _mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(_userteams);
 
             //Arrange
-            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object, mockUserRepository.Object);
+            GameController Controller = new GameController(_mockGameRepository.Object, _mockUserTeamRepository.Object, _mockWSW.Object, _mockUserRepository.Object);
 
             //Act
             ViewResult result = Controller.Index();
 
             //Assert
             Assert.IsInstanceOf<ViewResult>(result);
-
         }
 
         [Test]
@@ -76,20 +87,17 @@ namespace IDSM.Tests.Controllers
 
             List<Game> games = new List<Game>
             {
-                new Game { Id = 1, CreatorId = 1, Name = "Game1", Creator = creator, UserTeams=uteams},
+                new Game { Id = 1, CreatorId = 1, Name = "Game1", UserTeams=uteams},
             };
 
             List<UserTeam> userteams = new List<UserTeam>
             {
-                new UserTeam {Id=1, UserId = 1, GameId=1, User=user, Game = game, UserTeam_Players=utp}
+                new UserTeam {Id=1, UserId = 1, GameId=1, UserTeam_Players=utp}
             };
 
             // Mock the Players Repository using Moq
             Mock<IGameRepository> mockGameRepository = new Mock<IGameRepository>();
             Mock<IUserTeamRepository> mockUserTeamRepository = new Mock<IUserTeamRepository>();
-            // if i set this to Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
-            // like the above 2, it doesn't work... (currentuserid remains 0, not 1)...
-            // so how do the above 2 work sucessfully?  ah, that's it - they dont contain VALUES.
             Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
             Mock<IUserRepository> mockUserRepository = new Mock<IUserRepository>();
 
@@ -100,28 +108,15 @@ namespace IDSM.Tests.Controllers
             mockWSW.Setup(x => x.CurrentUserId).Returns(1);
 
             //Arrange
-           // GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object);
             GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object, mockUserRepository.Object);
 
-            //http://stackoverflow.com/questions/11245059/how-to-mock-httpcontext-so-that-it-is-not-null-from-a-unit-test
-            //http://www.emadibrahim.com/2008/04/04/unit-test-linq-to-sql-in-aspnet-mvc-with-moq/
-            // ohh... the httpcontextwrapper works for the old .net membership, but not for websecurity... not sure why
-            // so....http://stackoverflow.com/questions/15946579/mocking-websecurity-provider
-            //https://en.wikipedia.org/wiki/Adapter_pattern
-            //http://forums.asp.net/t/1874799.aspx/1?What+is+the+relation+between+WebSecurity+class+and+SimpleMembershipProvider+class+and+SimpleRoleProvider+class+
-
-            // Apparently this should set the
             HttpContextFactory.SetFakeAuthenticatedControllerContext(Controller);
 
             //Act
-           // http://codereview.stackexchange.com/questions/15501/creating-a-wrapper-class-to-use-for-mocking-that-uses-idisposable
-            // getting an error because the websecuritywrapper that i've created doesn't seem to return '1'
-            //  when i replace int UserID = wr.CurrentUserId;  with int UserID = 1; in  joingame, the test passes.
-
             //RedirectToRouteResult result = Controller.JoinGame(1, mockWSW.Object);
             RedirectToRouteResult result = Controller.ManageUserTeam(1, 1);
 
-           // Assert.That(result.RouteName, Is.EqualTo("Index"));
+            // Assert.That(result.RouteName, Is.EqualTo("Index"));
             Assert.AreEqual("Index", result.RouteValues["action"]);
         }
     }

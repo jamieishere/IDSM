@@ -12,21 +12,21 @@ namespace IDSM.Repository
     public class RepositoryBase<C> : IDisposable
            where C : DbContext, IDisposedTracker, new()
     {
-        private C _DataContext;
+        private C _dataContext;
 
         public virtual C DataContext
         {
             get
             {
                 // need disposed check here otherwise after first use we dont have it
-                if (_DataContext == null || _DataContext.IsDisposed)
+                if (_dataContext == null || _dataContext.IsDisposed)
                 //if (_DataContext == null)
                 {
-                    _DataContext = new C();
+                    _dataContext = new C();
                     AllowSerialization = true;
                     //Disable ProxyCreationDisabled to prevent the "In order to serialize the parameter, add the type to the known types collection for the operation using ServiceKnownTypeAttribute" error
                 }
-                return _DataContext;
+                return _dataContext;
             }
         }
 
@@ -36,11 +36,11 @@ namespace IDSM.Repository
             {
                 //return ((IObjectContextAdapter) _DataContext)
                 //.ObjectContext.ContextOptions.ProxyCreationEnabled = false;
-                return _DataContext.Configuration.ProxyCreationEnabled;
+                return _dataContext.Configuration.ProxyCreationEnabled;
             }
             set
             {
-                _DataContext.Configuration.ProxyCreationEnabled = !value;
+                _dataContext.Configuration.ProxyCreationEnabled = !value;
             }
         }
 

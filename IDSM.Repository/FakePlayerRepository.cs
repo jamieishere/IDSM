@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IDSM.Repository
 {
-    public class FakePlayerRepository : RepositoryBase<IDSMContext>, IPlayerRepository
+    public class MockPlayerRepository : RepositoryBase<IDSMContext>, IPlayerRepository
     {
         public Player GetPlayer(int id)
         {

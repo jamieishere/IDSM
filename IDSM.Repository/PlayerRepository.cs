@@ -14,28 +14,30 @@ namespace IDSM.Repository
 {
     public class PlayerRepository : RepositoryBase<IDSMContext>, IPlayerRepository
     {
-
-        public Player GetPlayer(int id)
+        /// <summary>
+        /// GetPlayer
+        /// Gets a Player by Id
+        /// </summary>
+        /// <param name="playerId"></param>
+        /// <returns>Player</returns>
+        public Player GetPlayer(int playerId)
         {
             using (DataContext)
             {
-                var pl = DataContext.Players.SingleOrDefault(s => s.Id == id);
+                Player pl = DataContext.Players.SingleOrDefault(s => s.Id == playerId);
                 if (pl == null)
                 {
-                    // either return null or throw error not found.
-                }
-                if (pl is Player)
-                {
-                    // do nothing
+                    return null;
                 }
                 return pl;
             }
         }
 
-        //public List<Player> GetAllPlayers() - use ienumerable BECAUSE... List implemenets Ienumerable... 
-        //think turns into something you can access by index so certain important things arent available... 
-        // AH - you can still do what you need to with a list, but it doesnt give the compiler a chance to optimise, so only use a list if you need to update
-        // the list once you have it... in this case, we're just getting it... so it's better to be an IEnumerable
+        /// <summary>
+        /// GetAllPlayers
+        /// Gets all Players
+        /// </summary>
+        /// <returns>IEnumerable<Player></returns>
         public IEnumerable<Player> GetAllPlayers()
         {
             using (DataContext)
@@ -45,22 +47,34 @@ namespace IDSM.Repository
             }
         }
 
-        // why i've chosen an in array over a list
-        // http://stackoverflow.com/questions/434761/array-versus-listt-when-to-use-which
-        // basically - this will get called every single time the viewplayers page is loaded.  it give very marginal performance increase.
-        public int[] GetAllChosenPlayerIdsForGame(int gameid) 
+        /// <summary>
+        /// GetAllChosenPlayerIdsForGame
+        /// Gets int array of all the Ids of all the UserTeam_Players currently selected by UserTeams for specific Game
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <returns>int[]</returns>
+        /// <remarks>
+        /// Returning an array gives marginal performance benefit in this situation 
+        /// http://stackoverflow.com/questions/434761/array-versus-listt-when-to-use-which
+        /// </remarks>
+        public int[] GetAllChosenPlayerIdsForGame(int gameId) 
         {
             using (DataContext)
             {
                 //var pl = DataContext.UserTeam_Players.ToList();
-                var chosenPlayers = from cp in DataContext.UserTeam_Players
-                              where cp.GameId == gameid
+                var _chosenPlayers = from cp in DataContext.UserTeam_Players
+                              where cp.GameId == gameId
                               select cp.PlayerId;
-                return chosenPlayers.ToArray();
+                return _chosenPlayers.ToArray();
             }
         }
 
-        // this should bhe in the game repo
+        /// <summary>
+        /// GetAllChosenPlayersForGame
+        /// Gets all the UserTeam_Players currently selected by UserTeams for specific Game
+        /// </summary>
+        /// <param name="gameid"></param>
+        /// <returns>IEnumerable<UserTeam_Player></returns>
         public IEnumerable<UserTeam_Player> GetAllChosenPlayersForGame(int gameid)
         {
             using (DataContext)
@@ -70,7 +84,12 @@ namespace IDSM.Repository
             }
         }
 
-        // this should bhe in the userteam repo
+        /// <summary>
+        /// GetAllChosenPlayersForUserTeam
+        /// Gets all the UserTeam_Players currently selected by a specific UserTeam
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <returns>IEnumerable<UserTeam_Player></returns>
         public IEnumerable<UserTeam_Player> GetAllChosenPlayersForUserTeam(int userTeamId)
         {
             using (DataContext)
@@ -80,6 +99,11 @@ namespace IDSM.Repository
             }
         }
 
+        /// <summary>
+        /// GetAllClubs
+        /// Gets a distinct list of all the football clubs in the Player database
+        /// </summary>
+        /// <returns>IEnumerable<string></returns>
         public IEnumerable<string> GetAllClubs()
         {
             using (DataContext)
@@ -94,26 +118,35 @@ namespace IDSM.Repository
             }
         }
 
+        /// <summary>
+        /// UploadPlayersCSV
+        /// Takes a .csv file containing Player data in the correct model format, inserts into the database
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns>OperationStatus</returns>
         public static OperationStatus UploadPlayersCSV(string filePath)
         {           
             return ProcessCSVHelper(filePath, new IDSMContext());           
         }
 
+        /// <summary>
+        /// ProcessCSVHelper
+        /// Takes a .csv file containing Player data in the correct model format, inserts into the database
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="DataContext"></param>
+        /// <returns>OperationStatus</returns>
         public static OperationStatus ProcessCSVHelper(string filePath, IDSMContext DataContext)
         {
             using (DataContext)
             {
-                //Set up our variables
                 string Feedback = string.Empty;
-                //FootballPlayerDBContext db2 = new FootballPlayerDBContext();
                 StreamReader srCSV = new StreamReader(filePath);
                 CsvReader csvReader = new CsvReader(srCSV);
 
                 // NOTE:
-                // Not sure if the 'ID' error on CSV import (that meant had to add the ID column to CSV)
-                //      is coming from this line, or the for each loop.
-                //      if was a real project would obviously investigate and fix!
-
+                //      'ID' error on CSV import is either is coming from this line, or the for each loop below.
+                //       Temporarily fixed by adding an ID column to CSV
                 List<Player> FootballPlayerList = new List<Player>();
 
                 try
@@ -127,7 +160,6 @@ namespace IDSM.Repository
 
                 try
                 {
-                    //for each row in dt
                     foreach (Player m in FootballPlayerList)
                     {
                         DataContext.Players.Add(m);
@@ -139,7 +171,6 @@ namespace IDSM.Repository
                     return OperationStatus.CreateFromException("Error saving players to DB from CSV.", ex);
                 }
 
-                //Tidy Streameader up
                 srCSV.Dispose();
                 csvReader.Dispose();
 

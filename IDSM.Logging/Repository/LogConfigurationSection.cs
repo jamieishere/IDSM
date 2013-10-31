@@ -6,27 +6,30 @@ using System.Web;
 
 namespace IDSM.Logging.Repository
 {            
-    // Use the following web.config file.
-    // <?xml version="1.0" encoding="utf-8" ?>
-    // <configuration>
-    //    <configSections>
-    //        <section name="logConfiguration" type="MvcLoggingDemo.Services.Logging.LogConfigurationSection" />
-    //    </configSections>
-    //    <logConfiguration>
-    //        <logProviders>
-    //            <clear />
-    //            <add name="Elmah" type="MvcLoggingDemo.Models.Repository.ElmahRepository" />
-    //            <add name="NLog" type="MvcLoggingDemo.Models.Repository.NLogRepository" />
-    //        </logProviders>
-    //    </logConfiguration>
-    // </configuration>
-
-    // Define a custom section named LogConfigurationSection containing a
-    // LogProviderCollection collection of LogProviderConfigElement elements.
-    // The collection is wrapped in an element named "logProviders" in the
-    // web.config file.
-    // LogProviderCollection and LogProviderConfigElement classes are defined below.
-    // This is the key class that shows how to use the ConfigurationCollectionAttribute.
+    /// <summary>
+    /// Defines a custom section named LogConfigurationSection containing a
+    /// LogProviderCollection collection of LogProviderConfigElement elements.
+    /// The collection is wrapped in an element named "logProviders" in the
+    /// web.config file.
+    /// LogProviderCollection and LogProviderConfigElement classes are defined below.
+    /// This is the key class that shows how to use the ConfigurationCollectionAttribute.
+    /// See http://msdn.microsoft.com/en-us/library/2tw134k3.aspx
+    /// </summary>
+    /// <remarks>
+    /// Use the following web.config file.
+        /// <configuration>
+        ///    <configSections>
+        ///        <section name="logConfiguration" type="MvcLoggingDemo.Services.Logging.LogConfigurationSection" />
+        ///    </configSections>
+        ///    <logConfiguration>
+        ///        <logProviders>
+        ///            <clear />
+        ///            <add name="Elmah" type="MvcLoggingDemo.Models.Repository.ElmahRepository" />
+        ///            <add name="NLog" type="MvcLoggingDemo.Models.Repository.NLogRepository" />
+        ///        </logProviders>
+        ///    </logConfiguration>
+        /// </configuration>
+    /// </remarks>
     public class LogConfigurationSection : ConfigurationSection
     {
         // Declare the urls collection property.

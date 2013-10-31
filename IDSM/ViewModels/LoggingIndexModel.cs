@@ -8,6 +8,10 @@ using IDSM.Model;
 
 namespace IDSM.ViewModels
 {
+    /// <summary>
+    /// LoggingIndexModel
+    /// Used for Logging/Index view
+    /// </summary>
     public class LoggingIndexModel
     {
         public IPagedList<LogEvent> LogEvents { get; set; }

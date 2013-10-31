@@ -25,6 +25,7 @@ namespace IDSM
     {
         protected void Application_Start()
         {
+            //// initialise membership 
             WebSecurity.InitializeDatabaseConnection("IDSMContext", "UserProfile", "UserId", "UserName", true);
             Database.SetInitializer<IDSMContext>(new DBInitialiser());
             //Database.SetInitializer<IDSMContext>(new DropCreateDatabaseIfModelChanges<IDSMContext>());

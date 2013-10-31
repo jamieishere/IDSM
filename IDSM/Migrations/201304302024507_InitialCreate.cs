@@ -7,6 +7,17 @@ namespace IDSM.Repository.Migrations
     {
         public override void Up()
         {
+
+            CreateTable(
+              "dbo.UserProfile",
+              c => new
+              {
+                  UserId = c.Int(nullable: false, identity: true),
+                  UserName = c.String(maxLength: 4000),
+              })
+              .PrimaryKey(t => t.UserId);
+            
+
             CreateTable(
                 "dbo.Banters",
                 c => new
@@ -46,15 +57,7 @@ namespace IDSM.Repository.Migrations
                 .ForeignKey("dbo.UserProfile", t => t.CreatorId)
                 .Index(t => t.CreatorId);
             
-            CreateTable(
-                "dbo.UserProfile",
-                c => new
-                    {
-                        UserId = c.Int(nullable: false, identity: true),
-                        UserName = c.String(maxLength: 4000),
-                    })
-                .PrimaryKey(t => t.UserId);
-            
+          
             CreateTable(
                 "dbo.UserTeams",
                 c => new

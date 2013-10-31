@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace IDSM.Model
 {
+    /// <summary>
+    /// Banter
+    /// Class containing all the back and forth banter between Users
+    /// </summary>
     public class Banter
     {
         public int Id { get; set; }

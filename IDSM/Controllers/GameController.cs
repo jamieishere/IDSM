@@ -13,6 +13,7 @@ using IDSM.Wrapper;
 using IDSM.ViewModel;
 using IDSM.Helpers;
 using IDSM.Exceptions;
+using IDSM.Logging.Services.Logging;
 
 namespace IDSM.Controllers
 {
@@ -43,55 +44,58 @@ namespace IDSM.Controllers
             _wr = wr;
         }
 
-        //
-        // GET: /Game/
+        /// <summary>
+        /// Index
+        /// </summary>
+        /// <returns></returns>
         public ViewResult Index()
         {
-           //  ViewBag.ErrorMessage = "this is the error message";
-            var games = _gameRepository.GetAllGames();
-            //UserTeam _ut = _userTeamRepository.GetUserTeam(game
-            GameViewModel gvm = new GameViewModel { Games = games };
-            return View(gvm);
+            ILogger _logger = LogFactory.Logger();
+            _logger.Debug("testing out whetheritcouldbeantyhing");
+
+            var _games = _gameRepository.GetAllGames();
+            GameViewModel _gvm = new GameViewModel { Games = _games };
+            return View(_gvm);
         }
 
-        //public string GetWinnerName(int winnerid)
+        //public ActionResult Details(int id)
         //{
-        //    UserTeam _ut = _userTeamRepository.GetUserTeam(winnerid, 0, 0);
-        //    string _winnerName;
-        //    _winnerName = _ut.User.UserName;
-        //    return _winnerName;
+        //    return View(_gameRepository.GetGame(id));
         //}
 
-
-        public ActionResult Details(int id)
-        {
-            return View(_gameRepository.GetGame(id));
-        }
-
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <returns>View</returns>
         public ActionResult Create()
         {
             return View();
         }
 
+        /// <summary>
+        /// Create
+        /// Model binds posted form values, creates new Game.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns></returns>
         [HttpPost]
         public ActionResult Create(Game game)
         {
-            var opStatus = _gameRepository.SaveGame(game.CreatorId, game.Name);
-
-            return View("Index", _gameRepository.GetAllGames());
+            var _opStatus = _gameRepository.CreateGame(game.CreatorId, game.Name);
+            ViewBag.OperationStatus = _opStatus;
+            return View();
         }
 
         /// <summary>
-        /// Redirect to View - ViewUsers
+        /// ViewUsers
+        /// View list of all Users that could be added to the Game.
         /// </summary>
         /// <param name="_game"></param>
-        /// <returns></returns>
+        /// <returns>View</returns>
         public ActionResult ViewUsers(Game _game)
         {
-            // pass game model and list of all userteams - need a viewmodel.
             IEnumerable<UserProfile> _users = _userRepository.GetAllUsers();
             AddUserTeamViewModel _vm = new AddUserTeamViewModel() { Users = _users, Game = _game };
-
             return View(_vm);
         }
 
@@ -104,20 +108,20 @@ namespace IDSM.Controllers
         public ActionResult ResetGame(int gameId)
         {
             //get all userteams for this game, delete
-            IEnumerable<UserTeam> userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
-            foreach (UserTeam team in userTeams)
+            IEnumerable<UserTeam> _userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
+            foreach (UserTeam _team in _userTeams)
             {
                 //cascading delete setup for UserTeam - UserTeam_Players in IDSMContext
-                _userTeamRepository.DeleteUserTeam(team); 
+                _userTeamRepository.DeleteUserTeam(_team); 
             }
 
             //reset all game properties to default
-            Game game = _gameRepository.GetGame(gameId);
-            game.WinnerId = 0;
-            game.HasEnded = false;
-            game.HasStarted = false;
-            game.CurrentOrderPosition = 0;
-            _gameRepository.UpdateGame(game);
+            Game _game = _gameRepository.GetGame(gameId);
+            _game.WinnerId = 0;
+            _game.HasEnded = false;
+            _game.HasStarted = false;
+            _game.CurrentOrderPosition = 0;
+            _gameRepository.UpdateGame(_game);
 
             return RedirectToAction("Index");
         }
@@ -133,16 +137,16 @@ namespace IDSM.Controllers
         {
             List<UserTeam> _userTeams = _userTeamRepository.GetAllUserTeamsForGame(gameId, "Id");
             _userTeams.Shuffle();
-            foreach(UserTeam team in _userTeams){
-                team.OrderPosition = _userTeams.IndexOf(team);
-                _userTeamRepository.SaveUserTeam(team);
+            foreach(UserTeam _team in _userTeams){
+                _team.OrderPosition = _userTeams.IndexOf(_team);
+                _userTeamRepository.SaveUserTeam(_team);
                 //TODO: read what it says here about the command pattern & updating EF entities
                 //http://stackoverflow.com/questions/12616276/better-way-to-update-a-record-using-entity-framework
             }
 
-            Game game = _gameRepository.GetGame(gameId);
-            game.HasStarted = true;
-            _gameRepository.UpdateGame(game);
+            Game _game = _gameRepository.GetGame(gameId);
+            _game.HasStarted = true;
+            _gameRepository.UpdateGame(_game);
 
             return RedirectToAction("Index");
         }
@@ -158,14 +162,14 @@ namespace IDSM.Controllers
         {
             // check if userteam exists
             UserTeam _ut = _userTeamRepository.GetUserTeam(userTeamId: 0, gameId: gameId, userId: userId);
-            int intUTID = 0;
+            int _intUTID = 0;
             if (_ut == null)
             {
                 // no userteam found, create it
                 OperationStatus opStatus = _userTeamRepository.CreateUserTeam(userId, gameId);
-                if (opStatus.Status) intUTID = (int)opStatus.OperationID;
+                if (opStatus.Status) _intUTID = (int)opStatus.OperationID;
             }
-            else { intUTID = _ut.Id; }
+            else { _intUTID = _ut.Id; }
 
             return RedirectToAction("Index");
         }
@@ -194,7 +198,7 @@ namespace IDSM.Controllers
                 //How to use ActionFilters - handleerrors, outputcache, ValidateAntiForgeryToken, etc
                 //http://blogs.msdn.com/b/gduthie/archive/2011/03/17/get-to-know-action-filters-in-asp-net-mvc-3-using-handleerror.aspx
 
-                UserTeamRepositoryException ex = new UserTeamRepositoryException() { Message = "Error. An error occurred while processing your request.  Something to do with UserTeams." };
+                UserTeamRepositoryException ex = new UserTeamRepositoryException() { BespokeMessage = "Error. An error occurred while processing your request.  Something to do with UserTeams." };
                 throw ex;
             }
 

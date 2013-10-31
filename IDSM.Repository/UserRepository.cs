@@ -12,6 +12,11 @@ namespace IDSM.Repository
 {
     public class UserRepository : RepositoryBase<IDSMContext>, IUserRepository
     {
+        /// <summary>
+        /// GetAllUsers
+        /// Gets all UserProfiles
+        /// </summary>
+        /// <returns>IEnumerable<UserProfile></returns>
         public IEnumerable<UserProfile> GetAllUsers()
         {
             using (DataContext)

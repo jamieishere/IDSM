@@ -6,6 +6,11 @@ using IDSM.Model;
 
 namespace IDSM.ViewModel
 {
+    /// <summary>
+    /// GameViewModel
+    /// Used for the Games/Index view
+    /// Holds all games 
+    /// </summary>
     public class GameViewModel
     {
         public IEnumerable<Game> Games{ get; set; }

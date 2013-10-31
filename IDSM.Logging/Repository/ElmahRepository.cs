@@ -47,7 +47,7 @@ namespace IDSM.Logging.Repository
         {
             IQueryable<LogEvent> list = null;
 
-            if((logLevel=="All")||(logLevel=="Error")){
+            //if((logLevel=="All")||(logLevel=="Error")){
 
                 list = (from a in _context.ELMAH_Error
                                              where a.TimeUtc >= start && a.TimeUtc <= end
@@ -78,9 +78,10 @@ namespace IDSM.Logging.Repository
                                                  Source = a.Source,
                                                  StackTrace = ""
                                              });
-            }else{
-                list = (IQueryable<LogEvent>)Enumerable.Empty<LogEvent>();
-            }
+            //}else{
+                  // gave cast error.
+            //    list = (IQueryable<LogEvent>)Enumerable.Empty<LogEvent>();
+            //}
                                         
                                          
 

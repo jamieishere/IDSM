@@ -2,9 +2,15 @@
 
 @{
     ViewBag.Title = "Create";
+    var msg = "";
+    if(ViewBag.OperationStatus!=null){
+        msg = (ViewBag.OperationStatus.Status == true)? "Data Updated": "Error Updating Data";
+    }
 }
 
 <h2>Create Game</h2>
+
+<h2 style="margin-left:10px;color:White">@msg</h2>
 
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)

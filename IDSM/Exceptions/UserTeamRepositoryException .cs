@@ -8,7 +8,7 @@ namespace IDSM.Exceptions
     [Serializable]
     public class UserTeamRepositoryException : Exception
     {
-       public override string Message { get; set; }
+       public string BespokeMessage { get; set; }
        
     }
 }

@@ -223,10 +223,14 @@ namespace IDSM.Repository
 
                        // int test = temp.IndexOf(m.Player.Id);
 
-                        if (!temp.Any() || (temp.IndexOf(m.Player.Id) == -1))
+
+
+                        if (!temp.Any() || (temp.IndexOf(m.PlayerId) == -1))
+                        //if (!temp.Any() || (temp.IndexOf(m.Player.Id) == -1))
                         {
                             //opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Id);
-                            opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Player.Id);
+                            //opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Player.Id);
+                            opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.PlayerId);
                             if (!opStatus.Status)
                             {
                                 return OperationStatus.CreateFromException("Error saving userteam.", null);

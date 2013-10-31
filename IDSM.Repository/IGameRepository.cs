@@ -11,10 +11,8 @@ namespace IDSM.Repository
     {
         Game GetGame(int gameid);
         IEnumerable<Game> GetAllGames();
-        OperationStatus SaveGame(int creatorid, string name);
+        OperationStatus CreateGame(int creatorid, string name);
         OperationStatus UpdateGame(Game game);
-        //Game GetFinalScore(int finalscoreid);
-        //List<Game> GetAllFinalScoresForGame(int gameid);
     }
 }
 

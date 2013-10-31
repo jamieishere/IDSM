@@ -3,49 +3,67 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using IDSM;
 using IDSM.Controllers;
 using Moq;
 using IDSM.Models;
 using IDSM.Repository;
 using IDSM.Model;
+using IDSM.Tests.Factories;
+using System.Web;
+using System.Web.Routing;
+using System.Configuration;
 
 namespace IDSM.Tests.Controllers
 {
-    [TestClass]
+    [TestFixture]
     public class HomeControllerTest
     {
-
-        [TestMethod]
-        public void Index_RendersView()
+        /// <summary>
+        /// Upload
+        /// Tests the posted file csv upload
+        /// </summary>
+        /// <remarks>
+        /// It's necessary to mock HttpContextBase, don't full understand 
+        /// Further reading
+        /// http://stackoverflow.com/questions/5515404/how-to-unit-test-asp-net-mvc-fileupload
+        /// http://stackoverflow.com/questions/8308899/unit-test-a-file-upload-how
+        /// http://www.codethinked.com/simplified-aspnet-mvc-controller-testing-with-moq
+        /// </remarks>
+        [Test]
+        public void Upload()
         {
             // Arrange
-            var controller = new HomeController(new FakePlayerRepository());
+            HomeController controller = new HomeController();
+            var httpContextMock = new Mock<HttpContextBase>();
+            controller.ControllerContext = new ControllerContext(httpContextMock.Object, new RouteData(), controller);
+            var FileUpload = new Mock<HttpPostedFileBase>();
+            FileUpload.Setup(f => f.ContentLength).Returns(1);
+            FileUpload.Setup(f => f.FileName).Returns("idsm_forupload.csv");
 
-            // Act
-           // ViewResult result = controller.Index() as ViewResult;
-            ViewResult result = controller.Index();// as ViewResult;
-
-            // Assert
-            Assert.IsNotNull(result);
-        }
-
-        [TestMethod]
-        public void Index_get_most_recent_entries()
-        {
-            // Arrange
-            var controller = new HomeController(new FakePlayerRepository());
-
-            // Act
-           // ViewResult result = (ViewResult)controller.Index();
-            ViewResult result = controller.Index();
+            // Act/
+            ActionResult result = controller.Upload(FileUpload.Object);
 
             // Assert
-            Assert.IsNotNull(result);
+            Assert.IsInstanceOf<ActionResult>(result);
         }
 
-        [TestMethod]
+        /// <summary>
+        /// Index
+        /// Tests the Home page index action
+        /// </summary>
+        /// <remarks>
+        /// Initially, this test failed because the home page text was in a resx file in the App_GlobalResources folder.  App_GlobalResources is not available in a unit test because, behind the scenes, it uses HttpContext.GetGlobalResourceObject.  I had a simlar issue with getting the UserName in the GameController test (created HttpContextFactory, didn't work, then used a WebSecurityWrapper, which did.
+        /// I solve the issue (with resource files) using the approach in this link
+        /// http://odetocode.com/Blogs/scott/archive/2009/07/16/resource-files-and-asp-net-mvc-projects.aspx
+        ///     Change App_GlobalResources to Resources, then change the properties on the resx files to EmbeddedResource and PublicResXFileCodeGenerator.
+        /// Further reading
+        ///     http://stackoverflow.com/questions/4153748/app-globalresources-not-loading-in-a-unit-test-case)
+        ///     http://haacked.com/archive/2007/06/19/unit-tests-web-code-without-a-web-server-using-httpsimulator.aspx
+        ///     http://odetocode.com/Blogs/scott/archive/2009/07/16/resource-files-and-asp-net-mvc-projects.aspx
+        /// </remarks>
+        [Test]
         public void Index()
         {
             // Arrange
@@ -56,252 +74,7 @@ namespace IDSM.Tests.Controllers
             ViewResult result = controller.Index();
 
             // Assert
-            Assert.AreEqual("Modify this template to jump-start your ASP.NET MVC application.", result.ViewBag.Message);
+            Assert.IsNotNull(result);
         }
-
-        // the mocks to return players etc below should be in the viewplayers controller tests, not home tests
-
-        ///// <summary>
-        ///// Constructor
-        ///// </summary>
-        //public HomeControllerTest()
-        //{
-        //    // create some mock players to play with
-        //    List<Player> players = new List<Player>
-        //        {
-        //            new Player { Id = 1, Name = "Wayne Rooney"},
-        //            new Player { Id = 2, Name = "Ryan Giggs"},
-        //            new Player { Id = 3, Name = "Patrice Evra"}
-        //        };
-
-        //    // Mock the Players Repository using Moq
-        //    Mock<IPlayerRepository> mockPlayerRepository = new Mock<IPlayerRepository>();
-
-        //    // Return all the Players
-        //    mockPlayerRepository.Setup(mr => mr.GetAllPlayers()).Returns(players);
-
-        //    // return a Player by Id
-        //    mockPlayerRepository.Setup(mr => mr.GetPlayer(
-        //        It.IsAny<int>())).Returns((int i) => players.Where(
-        //        x => x.Id == i).Single());
-
-        //    // return a Player by Name
-        //    //mockPlayerRepository.Setup(mr => mr.FindByName(
-        //    //    It.IsAny<string>())).Returns((string s) => Players.Where(
-        //    //    x => x.Name == s).Single());
-
-        //    // Allows us to test saving a Player
-        // this probably won't work now we are returning OperationStatus for all CRUD operations
-        //    i *think* that the 'Save' method (is this part of DBContext?
-        //    //mockPlayerRepository.Setup(mr => mr.Save(It.IsAny<Player>())).Returns(
-        //    //    (Player target) =>
-        //    //    {
-        //    //        DateTime now = DateTime.Now;
- 
-        //    //        if (target.PlayerId.Equals(default(int)))
-        //    //        {
-        //    //            target.DateCreated = now;
-        //    //            target.DateModified = now;
-        //    //            target.PlayerId = Players.Count() + 1;
-        //    //            Players.Add(target);
-        //    //        }
-        //    //        else
-        //    //        {
-        //    //            var original = Players.Where(
-        //    //                q => q.PlayerId == target.PlayerId).Single();
- 
-        //    //            if (original == null)
-        //    //            {
-        //    //                return false;
-        //    //            }
- 
-        //    //            original.Name = target.Name;
-        //    //            original.Price = target.Price;
-        //    //            original.Description = target.Description;
-        //    //            original.DateModified = now;
-        //    //        }
- 
-        //    //        return true;
-        //    //    });
- 
-        //    // Complete the setup of our Mock Player Repository
-        //    this.MockPlayersRepository = mockPlayerRepository.Object;
-        //}
- 
-        ///// <summary>
-        ///// Gets or sets the test context which provides
-        ///// information about and functionality for the current test run.
-        /////</summary>
-        //public TestContext TestContext { get; set; }
- 
-        ///// <summary>
-        ///// Our Mock Players Repository for use in testing
-        ///// </summary>
-        //public readonly IPlayerRepository MockPlayersRepository;
- 
-        ///// <summary>
-        ///// Can we return a Player By Id?
-        ///// </summary>
-        //[TestMethod]
-        //public void CanReturnPlayerById()
-        //{
-        //    // Try finding a Player by id
-        //    Player testPlayer = this.MockPlayersRepository.GetPlayer(2);
- 
-        //    Assert.IsNotNull(testPlayer); // Test if null
-        //    Assert.IsInstanceOfType(testPlayer, typeof(Player)); // Test type
-        //    Assert.AreEqual("Ryan Giggs", testPlayer.Name); // Verify it is the right Player
-        //}
- 
-        ///// <summary>
-        ///// Can we return a Player By Name?
-        ///// </summary>
-        ////[TestMethod]
-        ////public void CanReturnPlayerByName()
-        ////{
-        ////    // Try finding a Player by Name
-        ////    Player testPlayer = this.MockPlayersRepository.FindByName("Silverlight Unleashed");
- 
-        ////    Assert.IsNotNull(testPlayer); // Test if null
-        ////    Assert.IsInstanceOfType(testPlayer, typeof(Player)); // Test type
-        ////    Assert.AreEqual(3, testPlayer.PlayerId); // Verify it is the right Player
-        ////}
- 
-        ///// <summary>
-        ///// Can we return all Players?
-        ///// </summary>
-        //[TestMethod]
-        //public void CanReturnAllPlayers()
-        //{
-        //    // Try finding all Players
-        //    List<Player> testPlayers = this.MockPlayersRepository.GetAllPlayers().ToList();
- 
-        //    Assert.IsNotNull(testPlayers); // Test if null
-        //    Assert.AreEqual(3, testPlayers.Count); // Verify the correct Number
-        //}
- 
-        /// <summary>
-        /// Can we insert a new Player?
-        /// </summary>
-        //[TestMethod]
-        //public void CanInsertPlayer()
-        //{
-        //    // Create a new Player, not I do not supply an id
-        //    Player newPlayer = new Player
-        //        { Name = "Pro C#", Description = "Short description here", Price = 39.99 };
- 
-        //    int PlayerCount = this.MockPlayersRepository.FindAll().Count;
-        //    Assert.AreEqual(3, PlayerCount); // Verify the expected Number pre-insert
- 
-        //    // try saving our new Player
-        //    this.MockPlayersRepository.Save(newPlayer);
- 
-        //    // demand a recount
-        //    PlayerCount = this.MockPlayersRepository.FindAll().Count;
-        //    Assert.AreEqual(4, PlayerCount); // Verify the expected Number post-insert
- 
-        //    // verify that our new Player has been saved
-        //    Player testPlayer = this.MockPlayersRepository.FindByName("Pro C#");
-        //    Assert.IsNotNull(testPlayer); // Test if null
-        //    Assert.IsInstanceOfType(testPlayer, typeof(Player)); // Test type
-        //    Assert.AreEqual(4, testPlayer.PlayerId); // Verify it has the expected Playerid
-        //}
- 
-        /// <summary>
-        /// Can we update a prodict?
-        /// </summary>
-        //[TestMethod]
-        //public void CanUpdatePlayer()
-        //{
-        //    // Find a Player by id
-        //    Player testPlayer = this.MockPlayersRepository.FindById(1);
- 
-        //    // Change one of its properties
-        //    testPlayer.Name = "C# 3.5 Unleashed";
- 
-        //    // Save our changes.
-        //    this.MockPlayersRepository.Save(testPlayer);
- 
-        //    // Verify the change
-        //    Assert.AreEqual("C# 3.5 Unleashed", this.MockPlayersRepository.FindById(1).Name);
-        //}
-
-        //[TestMethod]
-        //public void Index_RendersView()
-        //{
-        //    // Arrange
-        //    var controller = new HomeController(new FakePlayerRepository());
-
-        //    // Act
-        //    ViewResult result = controller.Index() as ViewResult;
-
-        //    // Assert
-        //    Assert.IsNotNull(result);
-        //}
-
-        //[TestMethod]
-        //public void Index_get_most_recent_entries()
-        //{
-        //    // Arrange
-        //    var controller = new HomeController(new FakePlayerRepository());
-
-        //    // Act
-        //    ViewResult result = (ViewResult)controller.Index();
-
-        //    // Assert
-        //    Assert.IsNotNull(result);
-        //}
-
-        //[TestMethod]
-        //public void Index_get_most_recent_entries()
-        //{
-        //    // Arrange
-        //    var controller = new HomeController(new FakePlayerRepository());
-
-        //    // Act
-        //    ViewResult result = (ViewResult)controller.Index();
-
-        //    // Assert
-        //    Assert.IsNotNull(result);
-        //}
-
-        //[TestMethod]
-        //public void Index()
-        //{
-        //    // Arrange
-        //    HomeController controller = new HomeController();
-
-        //    // Act
-        //    ViewResult result = controller.Index() as ViewResult;
-
-        //    // Assert
-        //    Assert.AreEqual("Modify this template to jump-start your ASP.NET MVC application.", result.ViewBag.Message);
-        //}
-
-        //[TestMethod]
-        //public void About()
-        //{
-        //    // Arrange
-        //    HomeController controller = new HomeController();
-
-        //    // Act
-        //    ViewResult result = controller.About() as ViewResult;
-
-        //    // Assert
-        //    Assert.IsNotNull(result);
-        //}
-
-        //[TestMethod]
-        //public void Contact()
-        //{
-        //    // Arrange
-        //    HomeController controller = new HomeController();
-
-        //    // Act
-        //    ViewResult result = controller.Contact() as ViewResult;
-
-        //    // Assert
-        //    Assert.IsNotNull(result);
-        //}
     }
 }

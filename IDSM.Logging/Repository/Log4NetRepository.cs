@@ -84,6 +84,7 @@ namespace IDSM.Logging.Repository
                                          });
 
             //            }else{
+                              // gave cast error.
             //                list = (IQueryable<LogEvent>)Enumerable.Empty<LogEvent>();
             //}
 

@@ -7,6 +7,11 @@ using IDSM.Model;
 
 namespace IDSM.ViewModel
 {
+    /// <summary>
+    /// SearchViewModel
+    /// Used on the ViewPlayers/Index view
+    /// Holds full players searched for list, list of players chosen, plus all details on the userteam.
+    /// </summary>
     public class SearchViewModel
     {
         public IEnumerable<Player> Players_SearchedFor { get; set; }

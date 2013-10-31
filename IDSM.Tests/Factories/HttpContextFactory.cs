@@ -11,6 +11,19 @@ using Moq;
 
 namespace IDSM.Tests.Factories
 {
+    /// <summary>
+    /// HttpContextFactory
+    /// Factory for mocking HttpContext.
+    /// </summary>
+    /// <remarks>
+    /// Not currently used.
+    /// Initially required for getting the current user ID in Unit Tests.  Ended up creating a WebSecurity wrapped instead.
+    /// See http://stackoverflow.com/questions/17096999/unit-test-httpcontext-is-null-websecurity-currentuserid-not-being-populated-e
+    /// Again required when I discovered that resource files in App_GlobalResources are not availabel to test projects
+    /// See http://stackoverflow.com/questions/4153748/app-globalresources-not-loading-in-a-unit-test-case
+    /// But, it didn't work... Rob said "The reason HttpContextFactory didn't work is because the HttpContextFactory implementations I've seen deal with properties on the controller and I suspect your dependency on HttpContext was inside the WebSecurity class itself, hence why you need the wrapper."
+    /// Disclosure: I have no idea what Rob is talking about.
+    /// </remarks>
     public static class HttpContextFactory
     {
         public static void SetFakeAuthenticatedControllerContext(this Controller controller)

@@ -9,6 +9,10 @@ using IDSM.Model;
 
 namespace IDSM.ViewModel
 {
+    /// <summary>
+    /// AddUserTeamViewModel
+    /// Used for the Game/ViewUsers view
+    /// </summary>
     public class AddUserTeamViewModel
     {
         public IEnumerable<UserProfile> Users { get; set; }

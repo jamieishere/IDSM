@@ -11,7 +11,6 @@ namespace IDSM.Model
     /// Represents each football player in the system.
     ///</summary>
     ///<remarks>
-    ///This is a test.
     ///</remarks>
     public class Player
     {

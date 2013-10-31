@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace IDSM.Model
 {
+    /// <summary>
+    /// Utility class that holds all information returned from a database operation.  Better than returning void or bool.
+    /// TODO:
+    /// Rewatch AccountAtAGlance WorkingWithData, 9:demo: Creating Data Repository Classes, 13mins
+    /// </summary>
     [DebuggerDisplay("Status: {Status}")]
     public class OperationStatus
     {
