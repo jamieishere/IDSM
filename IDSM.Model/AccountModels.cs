@@ -41,12 +41,10 @@ namespace IDSM.Model
         {
             UserTeams = new HashSet<UserTeam>();
             Games = new HashSet<Game>();
-            //UserId = userId==null ? 0 : (int)userId;
         }
 
         //navigation properties
-        // is this attribute necessary?
-        [ForeignKey("UserId")]
+       // [ForeignKey("UserId")]
         public virtual ICollection<UserTeam> UserTeams { get; set; }
         public virtual ICollection<Game> Games { get; set; }
     }

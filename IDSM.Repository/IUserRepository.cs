@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace IDSM.Repository
 {
-    public interface IUserRepository
+    public interface IUserRepository : IRepositoryBase<UserProfile>
     {
         IEnumerable<UserProfile> GetAllUsers();
-        UserProfile GetUser(int userId);
+        Boolean TryGetUser(out UserProfile userProfile, int userId);
     }
 }
 

@@ -10,29 +10,21 @@ using IDSM.Logging.Services.Logging.Log4Net;
 
 namespace IDSM.Repository
 {
-    public class UserRepository : RepositoryBase<IDSMContext>, IUserRepository
+    public class UserRepository : RepositoryBase<UserProfile>, IUserRepository
     {
-        /// <summary>
-        /// GetAllUsers
-        /// Gets all UserProfiles
-        /// </summary>
-        /// <returns>IEnumerable<UserProfile></returns>
+        public UserRepository(IDSMContext context) : base(context) { }
+
         public IEnumerable<UserProfile> GetAllUsers()
         {
-            using (DataContext)
-            {
-                var up = DataContext.UserProfiles.ToList();
-                return up;
-            }
+            var up = DataContext.UserProfiles.ToList();
+            return up;
         }
 
-        public UserProfile GetUser(int userId)
+        public Boolean TryGetUser(out UserProfile userProfile, int userId)
         {
-            using (DataContext)
-            {
-                UserProfile up = DataContext.UserProfiles.Where(u => u.UserId == userId).SingleOrDefault();
-                return up;
-            }
+            userProfile = Get(u => u.UserId == userId);
+            if(userProfile==null) return false;
+            return true;
         }
     }
 }

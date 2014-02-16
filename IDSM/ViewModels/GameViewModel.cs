@@ -13,8 +13,25 @@ namespace IDSM.ViewModel
     /// </summary>
     public class GameViewModel
     {
-        public IEnumerable<Game> Games{ get; set; }
-       
-       // public string WinnerName { get; set; }
+       // public IEnumerable<GameDTO> Games { get; set; }
+        public IEnumerable<Game> Games { get; set; }
+    }
+
+    public class GameDTO
+    {
+        public int Id { get; set; }
+        public int CreatorId { get; set; }
+        public string Name { get; set; }
+        public int CurrentOrderPosition { get; set; }
+        public bool HasStarted { get; set; }
+        public bool HasEnded { get; set; }
+        public int WinnerId { get; set; }
+
+        public ICollection<UserTeamDTO> UserTeamsDTO { get; set; }
+    }
+
+    public class UserTeamDTO : UserTeam
+    {
+        public UserProfile User { get; set; }
     }
 }

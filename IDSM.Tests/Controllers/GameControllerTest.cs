@@ -16,6 +16,7 @@ using IDSM.Wrapper;
 using Ploeh.AutoFixture;
 using IDSM.Logging.Services.Logging.Log4Net;
 using IDSM.Logging.Services.Logging;
+using IDSM.ServiceLayer;
 
 namespace IDSM.Tests.Controllers
 {
@@ -33,12 +34,18 @@ namespace IDSM.Tests.Controllers
         List<UserTeam> _userteams;
         Mock<IGameRepository> _mockGameRepository;
         Mock<IUserTeamRepository> _mockUserTeamRepository;
+        Mock<IUserTeam_PlayerRepository> _mockUserTeamPlayerRepository;
         Mock<IWebSecurityWrapper> _mockWSW;
         Mock<IUserRepository> _mockUserRepository;
-        
+        Mock<IService> _mockServiceLayer;
+        Mock<IUnitOfWork> _mockUnitOfWork;
+
         public GameControllerTest()
         {
+            // autofixture automatically creates objects
             _fixture = new Fixture();
+            _fixture.Behaviors.Remove(new ThrowingRecursionBehavior());
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior(1)); //Recursion of 1
             _creator = _fixture.Create<UserProfile>();
             _user = _fixture.Create<UserProfile>();
             _game = _fixture.Create<Game>();
@@ -51,20 +58,25 @@ namespace IDSM.Tests.Controllers
             // Mock the Players Repository using Moq
             _mockGameRepository = new Mock<IGameRepository>();
             _mockUserTeamRepository = new Mock<IUserTeamRepository>();
+            _mockUserTeamPlayerRepository = new Mock<IUserTeam_PlayerRepository>();
             _mockWSW = new Mock<IWebSecurityWrapper>();
             _mockUserRepository = new Mock<IUserRepository>();
+
+           // _mockUnitOfWork = new Mock<IUnitOfWork>();
+        //    _mockServiceLayer = new Mock<IService>(_mockUnitOfWork.Object);
+            _mockServiceLayer = new Mock<IService>();
+            _mockServiceLayer.Setup(s => s.Users).Returns(_mockUserRepository.Object);
+            _mockServiceLayer.Setup(s => s.UserTeamPlayers).Returns(_mockUserTeamPlayerRepository.Object);
+            _mockServiceLayer.Setup(s => s.Games).Returns(_mockGameRepository.Object);
+            _mockServiceLayer.Setup(s => s.UserTeams).Returns(_mockUserTeamRepository.Object);
         }
 
         [Test]
         public void Game_Index_Returns_ViewResult()
         {
-
-            // Return all the Games
-            _mockGameRepository.Setup(mr => mr.GetAllGames()).Returns(_games);
-            _mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(_userteams);
-
             //Arrange
-            GameController Controller = new GameController(_mockGameRepository.Object, _mockUserTeamRepository.Object, _mockWSW.Object, _mockUserRepository.Object);
+            //GameController Controller = new GameController(_mockGameRepository.Object, _mockUserTeamRepository.Object, _mockWSW.Object, _mockUserRepository.Object);
+            GameController Controller = new GameController(_mockServiceLayer.Object);
 
             //Act
             ViewResult result = Controller.Index();
@@ -74,50 +86,83 @@ namespace IDSM.Tests.Controllers
         }
 
         [Test]
-        public void Game_JoinGame_Returns_RedirectToAction()
+        public void Game_Create_Returns_ViewResult()
         {
-            // create some mock players to play with
-            UserProfile creator = new UserProfile();
-            UserProfile user = new UserProfile();
-            Game game = new Game();
-            ICollection<UserTeam> uteams = null;
-            UserTeam ut = new UserTeam();
-            //ICollection<UserTeam_Player> utp = null;
-            IList<UserTeam_Player> utp = null;
-
-            List<Game> games = new List<Game>
-            {
-                new Game { Id = 1, CreatorId = 1, Name = "Game1", UserTeams=uteams},
-            };
-
-            List<UserTeam> userteams = new List<UserTeam>
-            {
-                new UserTeam {Id=1, UserId = 1, GameId=1, UserTeam_Players=utp}
-            };
-
-            // Mock the Players Repository using Moq
-            Mock<IGameRepository> mockGameRepository = new Mock<IGameRepository>();
-            Mock<IUserTeamRepository> mockUserTeamRepository = new Mock<IUserTeamRepository>();
-            Mock<IWebSecurityWrapper> mockWSW = new Mock<IWebSecurityWrapper>();
-            Mock<IUserRepository> mockUserRepository = new Mock<IUserRepository>();
-
-            // Setup 'mock' methods with dummy parameters to replace the method calls in the controller
-            mockUserTeamRepository.Setup(mr => mr.GetAllUserTeams()).Returns(userteams);
-            mockUserTeamRepository.Setup(mr => mr.GetUserTeam(0,1,1)).Returns(ut);
-            mockUserTeamRepository.Setup(mr => mr.CreateUserTeam(1, 1));
-            mockWSW.Setup(x => x.CurrentUserId).Returns(1);
-
             //Arrange
-            GameController Controller = new GameController(mockGameRepository.Object, mockUserTeamRepository.Object, mockWSW.Object, mockUserRepository.Object);
-
-            HttpContextFactory.SetFakeAuthenticatedControllerContext(Controller);
+            GameController Controller = new GameController(_mockServiceLayer.Object);
 
             //Act
-            //RedirectToRouteResult result = Controller.JoinGame(1, mockWSW.Object);
-            RedirectToRouteResult result = Controller.ManageUserTeam(1, 1);
+            ViewResult result = Controller.Create(_game);
 
-            // Assert.That(result.RouteName, Is.EqualTo("Index"));
-            Assert.AreEqual("Index", result.RouteValues["action"]);
+            //Assert
+            Assert.IsInstanceOf<ViewResult>(result);
         }
+
+        [Test]
+        public void Game_ViewUsers_Returns_ActionResult()
+        {
+            //Arrange
+            GameController Controller = new GameController(_mockServiceLayer.Object);
+
+            //Act
+            ViewResult result = Controller.ViewUsers(_game);
+
+            //Assert
+            Assert.IsInstanceOf<ViewResult>(result);
+        }
+
+        [Test]
+        public void Game_ResetGame_Returns_ActionResult()
+        {
+            //Arrange
+            GameController Controller = new GameController(_mockServiceLayer.Object);
+
+            //Act
+            ActionResult result = Controller.ResetGame(_game.Id);
+
+            //Assert
+            Assert.IsInstanceOf<ActionResult>(result);
+        }
+
+        [Test]
+        public void Game_StartGame_Returns_ActionResult()
+        {
+            //Arrange
+            GameController Controller = new GameController(_mockServiceLayer.Object);
+
+            //Act
+            ActionResult result = Controller.StartGame(_game.Id);
+
+            //Assert
+            Assert.IsInstanceOf<ActionResult>(result);
+        }
+
+        [Test]
+        public void Game_AddUserToGame_Returns_ActionResult()
+        {
+            //Arrange
+            GameController Controller = new GameController(_mockServiceLayer.Object);
+
+            //Act
+            ActionResult result = Controller.AddUserToGame(_user.UserId, _game.Id);
+
+            //Assert
+            Assert.IsInstanceOf<ActionResult>(result);
+        }
+
+        [Test]
+        public void Game_ManageUserTeam_Returns_ActionResult()
+        {
+            //Arrange
+            GameController Controller = new GameController(_mockServiceLayer.Object);
+
+            //Act
+            ActionResult result = Controller.ManageUserTeam(_game.Id, _user.UserId);
+
+            //Assert
+            Assert.IsInstanceOf<ActionResult>(result);
+        }
+
     }
+
 }

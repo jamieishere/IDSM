@@ -1,7 +1,9 @@
 ﻿using IDSM.Helpers;
 using IDSM.Model;
 using IDSM.Models;
+using IDSM.ServiceLayer;
 using IDSM.Repository;
+using IDSM.Repository.AutoMapperConfig;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -44,12 +46,16 @@ namespace IDSM
             // "If you are not using the NuGet package, you will need to register the DependencyResolver and set up the Unity container yourself."
             DependencyResolver.SetResolver(new UnityDependencyResolver(ModelContainer.Instance));
 
+            AutoMapperConfiguration.Configure();
+
             // For ELMAH
             // Setup our custom controller factory so that the [HandleErrorWithElmah] attribute is automatically injected into all of the controllers
             ControllerBuilder.Current.SetControllerFactory(new ErrorHandlingControllerFactory());
 
             // For Log4Net
             log4net.Config.XmlConfigurator.Configure();
+
+
         }
     }
 }

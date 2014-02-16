@@ -13,6 +13,7 @@ namespace IDSM.Models
     using IDSM.Model;
     using System.Web.Hosting;
     using IDSM.Logging.Services.Logging.Log4Net;
+    using IDSM.ServiceLayer;
 
     /// <summary>
     /// Migrations Configuration
@@ -62,10 +63,13 @@ namespace IDSM.Models
 
             // create a game
             OperationStatus test2 = new OperationStatus { Status = true };
-            GameRepository _gr = new GameRepository();
-            test2 = _gr.CreateGame(WebSecurity.GetUserId("jamie_admin"), "First Game");
+            //GameRepository _gr = new GameRepository(new IDSMContext());
+            Service _service = new Service(new UnitOfWork());
+            test2 = _service.CreateGame(WebSecurity.GetUserId("jamie_admin"), "First Game");
 
-            string path = ConfigurationManager.AppSettings.Get("AppDataUploadsPath");
+            string fileName = ConfigurationManager.AppSettings["DataUploadFileName"];
+
+            string path = Path.Combine(ConfigurationManager.AppSettings["AppDataUploadsPath"], fileName);
             OperationStatus test = new OperationStatus { Status = true };
 
             //TODO:

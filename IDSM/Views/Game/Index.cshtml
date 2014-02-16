@@ -1,5 +1,5 @@
 ﻿@model IDSM.ViewModel.GameViewModel
-
+@using IDSM.Model;
 @{
     ViewBag.Title = "Games List";
 }
@@ -45,39 +45,52 @@
             @Html.ActionLink("Details", "Details", new { id=item.Id }) |
             @Html.ActionLink("Delete", "Delete", new { id=item.Id }) |*@
 
-            @* need to loop through all players that have been added to the game*@
-             @if(item.HasEnded){
+            @if(item.HasEnded){
                  //NOTE:
                  // instead of foreach here, cuold write a HTML helper extension method (or a method in viewmodel)
                  // see http://stackoverflow.com/questions/1424015/how-do-i-use-a-function-in-my-asp-net-mvc-view
                  // method is tidier, but this loop does less data acces....
-                 // what is quicker?   
-                 //<p>Game Finished!  Winner is @GetWinnerName(item.WinnerId)</p>
-                   foreach (var userteam in item.UserTeams)
-                   {
-                       if (userteam.Id == item.WinnerId)
-                       {
-                           <p>Game Finished!  Winner is @userteam.User.UserName</p>
-                       }
-                   }
+               // foreach (var userteam in item.UserTeamsDTO)
+                foreach (var userteam in item.UserTeams)
+                {    
+                    if (userteam.Id == item.WinnerId)
+                    {
+                        <p>Game Finished!  Winner is @userteam.User.UserName</p>
+                    }
                 }
+            }
+
             <div class="userteams">
+
             @{int userTeamCounter = 0;}
-            @foreach (var userteam in item.UserTeams) {
-                if(item.HasStarted){
-                    if(item.CurrentOrderPosition == userteam.OrderPosition){
-                                @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid=userteam.UserId }, new { @class = "currentplayer" })
-                    }else{
-                            @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid=userteam.UserId })
-                    }   
-                 }else{
+            @{//foreach (var userteam in item.UserTeamsDTO)
+              }
+            @foreach (var userteam in item.UserTeams)
+            {
+                if (item.HasStarted)
+                {
+                    if (item.CurrentOrderPosition == userteam.OrderPosition)
+                    {
+                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId }, new { @class = "currentplayer" });
+                    }
+                    else
+                    {
+                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId });
+                    }
+                    //@Html.ActionLink(userteam.User.UserName + "this should 404", "ManageUserTeam", new { gameid = 4000, userid = 54352 });
+                }
+                else
+                {
                     @userteam.User.UserName
-                    if(!(userTeamCounter == item.UserTeams.Count)){
+                    //if (!(userTeamCounter == item.UserTeamsDTO.Count))
+                    if (!(userTeamCounter == item.UserTeams.Count))
+                    {
                         <b>,</b>
                     }
-                 }
-                 userTeamCounter++;              
-              }
+                }
+                userTeamCounter++;
+            }
+            
             </div>
            
 @*            @Html.ActionLink("Join game as user1", "JoinGame", new { gameid = item.Id, userid=1 }) |

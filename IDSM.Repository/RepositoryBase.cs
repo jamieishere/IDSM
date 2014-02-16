@@ -1,57 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;   
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using IDSM.Logging.Services.Logging.Log4Net;
 using IDSM.Model;
+using IDSM.Repository.DTOs;
 
 namespace IDSM.Repository
 {
-    public class RepositoryBase<C> : IDisposable
-           where C : DbContext, IDisposedTracker, new()
+    /// <summary>
+    /// #1 Goal of RepositoryBase is expose the generic DbContext object & fire up a new instance of the DbContext.
+    ///     Saves duplication of code (instantiating DbContext in every repository class) - 1 place for all repositories.
+    ///     In addition contains common resuable methods (Get, GetList, Save, Update, StoredProc, Dispose)
+    /// </summary>
+    /// <typeparam name="C"></typeparam>
+    //public class RepositoryBase<C, T> : IDisposable
+    //       where C : DbContext, IDisposedTracker, new()
+    public class RepositoryBase<T> : IDisposable where T : class
     {
-        private C _dataContext;
+        protected IDSMContext DataContext;
 
-        public virtual C DataContext
+        public RepositoryBase(IDSMContext context)
         {
-            get
-            {
-                // need disposed check here otherwise after first use we dont have it
-                if (_dataContext == null || _dataContext.IsDisposed)
-                //if (_DataContext == null)
-                {
-                    _dataContext = new C();
-                    AllowSerialization = true;
-                    //Disable ProxyCreationDisabled to prevent the "In order to serialize the parameter, add the type to the known types collection for the operation using ServiceKnownTypeAttribute" error
-                }
-                return _dataContext;
-            }
+            this.DataContext = context;
         }
 
-        public virtual bool AllowSerialization
-        {
-            get
-            {
-                //return ((IObjectContextAdapter) _DataContext)
-                //.ObjectContext.ContextOptions.ProxyCreationEnabled = false;
-                return _dataContext.Configuration.ProxyCreationEnabled;
-            }
-            set
-            {
-                _dataContext.Configuration.ProxyCreationEnabled = !value;
-            }
-        }
-
-        public virtual T Get<T>(Expression<Func<T, bool>> predicate) where T : class
+        public virtual T Get(Expression<Func<T, bool>> predicate)
         {
             if (predicate != null)
             {
-                using (DataContext)
-                {
-                    return DataContext.Set<T>().Where(predicate).SingleOrDefault();
-                }
+                return DataContext.Set<T>().Where(predicate).SingleOrDefault();
             }
             else
             {
@@ -59,7 +42,7 @@ namespace IDSM.Repository
             }
         }
 
-        public virtual IQueryable<T> GetList<T>(Expression<Func<T, bool>> predicate) where T : class
+        public virtual IQueryable<T> GetList(Expression<Func<T, bool>> predicate)
         {
             try
             {
@@ -72,8 +55,8 @@ namespace IDSM.Repository
             return null;
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(Expression<Func<T, bool>> predicate,
-            Expression<Func<T, TKey>> orderBy) where T : class
+        public virtual IQueryable<T> GetList<TKey>(Expression<Func<T, bool>> predicate,
+            Expression<Func<T, TKey>> orderBy)
         {
             try
             {
@@ -86,11 +69,11 @@ namespace IDSM.Repository
             return null;
         }
 
-        public virtual IQueryable<T> GetList<T, TKey>(Expression<Func<T, TKey>> orderBy) where T : class
+        public virtual IQueryable<T> GetList<TKey>(Expression<Func<T, TKey>> orderBy)
         {
             try
             {
-                return GetList<T>().OrderBy(orderBy);
+                return GetList().OrderBy(orderBy);
             }
             catch (Exception ex)
             {
@@ -99,7 +82,8 @@ namespace IDSM.Repository
             return null;
         }
 
-        public virtual IQueryable<T> GetList<T>() where T : class
+
+        public virtual IQueryable<T> GetList()
         {
             try
             {
@@ -112,7 +96,62 @@ namespace IDSM.Repository
             return null;
         }
 
-        public virtual OperationStatus Save<T>(T entity) where T : class
+        public virtual OperationStatus Save(T entity)
+        {
+            try
+            {
+                DataContext.Set<T>().Add(entity);
+            }
+            catch (Exception exp)
+            {
+                //Log error
+                return new OperationStatus { Status = false };
+            }
+
+            return new OperationStatus { Status = true };
+        }
+
+
+        public virtual OperationStatus Create(T entity)
+        {
+            try
+            {
+                DataContext.Set<T>().Add(entity);
+            }
+            catch (Exception exp)
+            {
+                //Log error
+                return new OperationStatus { Status = false };
+            }
+
+            return new OperationStatus { Status = true };
+        }
+
+        public OperationStatus Update(object dto, Expression<Func<T, bool>> currentEntityFilter) 
+        {
+            OperationStatus _opStatus = new OperationStatus { Status = true };
+            try
+            {
+                var current = DataContext.Set<T>().FirstOrDefault(currentEntityFilter);
+                DataContext.Entry(current).CurrentValues.SetValues(dto);
+            }
+            catch (Exception exp) {
+                // prob want this in the service really when call save changes.
+                _opStatus = OperationStatus.CreateFromException("Error updating " + typeof(T) + ".", exp);
+                Log4NetLogger _logger = new Log4NetLogger();
+                _logger.Error(_opStatus.Message, exp);
+                return _opStatus;
+            }
+            return _opStatus;
+        }
+
+        public void Update(object dto, params object[] keyValues)
+        {
+            var current = DataContext.Set<T>().Find(keyValues);
+            DataContext.Entry(current).CurrentValues.SetValues(dto);
+        }
+
+        public virtual OperationStatus Save()
         {
             OperationStatus opStatus = new OperationStatus { Status = true };
 
@@ -128,22 +167,7 @@ namespace IDSM.Repository
             return opStatus;
         }
 
-        public virtual OperationStatus Update<T>(T entity, params string[] propsToUpdate) where T : class
-        {
-            OperationStatus opStatus = new OperationStatus { Status = true };
-
-            try
-            {
-                DataContext.Set<T>().Attach(entity);
-                opStatus.Status = DataContext.SaveChanges() > 0;
-            }
-            catch (Exception exp)
-            {
-                opStatus = OperationStatus.CreateFromException("Error updating " + typeof(T) + ".", exp);
-            }
-
-            return opStatus;
-        }
+        
 
         public OperationStatus ExecuteStoreCommand(string cmdText, params object[] parameters)
         {

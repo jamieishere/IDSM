@@ -16,7 +16,7 @@ namespace IDSM.Model
     {
         public int Id { get; set; }
         //[Required(ErrorMessage = "Name is required")]
-        public bool HasBeenChosen { get; set; }
+        //public bool HasBeenChosen { get; set; }
         //[Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
         //[Required(ErrorMessage = "Nation is required")]

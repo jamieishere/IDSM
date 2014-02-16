@@ -31,9 +31,8 @@ namespace IDSM.Model
         public int OrderPosition { get; set; }
 
         //navigation properties
-        //public virtual UserProfile User { get; set; }
-        //public virtual Game Game { get; set; }
-        // unecessary ... [ForeignKey("UserTeamId")]
+        public virtual UserProfile User { get; set; }
+        public virtual Game Game { get; set; }
         public virtual ICollection<UserTeam_Player> UserTeam_Players { get; set; }
 
     }

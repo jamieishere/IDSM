@@ -22,6 +22,7 @@ namespace IDSM.Repository
         public DbSet<Player> Players { get; set; }
         public DbSet<UserProfile> UserProfiles{ get; set; }
         public DbSet<UserTeam> UserTeams { get; set; }
+        //public DbSet<UsersTeams> UsersTeams { get; set; }
         public DbSet<UserTeam_Player> UserTeam_Players { get; set; }
         public bool IsDisposed { get; set; }
 
@@ -39,23 +40,24 @@ namespace IDSM.Repository
             // Previously, I used the fluent API here to prevent multiple cacade paths
             // This masked a deeper design problem with the API - I had navigation properties of child objects referring to the parent, creating circular references.
             // By removing those navigation properties, I eliminated the cyclical references, and the need for these Fluent API cascadeondelete modifications.
-            //modelBuilder.Entity<UserProfile>()
-            //        .HasMany(u => u.Games)
-            //        .WithRequired(i => i.Creator)
-            //        .HasForeignKey(i => i.CreatorId)
-            //        .WillCascadeOnDelete(false);
 
-            //modelBuilder.Entity<UserProfile>()
-            //        .HasMany(u => u.UserTeams)
-            //        .WithRequired(i => i.UserProfile)
-            //        .HasForeignKey(i => i.UserId)
-            //        .WillCascadeOnDelete(false);
+            modelBuilder.Entity<UserProfile>()
+                    .HasMany(u => u.Games)
+                    .WithRequired(i => i.Creator)
+                    .HasForeignKey(i => i.CreatorId)
+                    .WillCascadeOnDelete(false);
 
-            //modelBuilder.Entity<UserTeam>()
-            //        .HasMany(u => u.UserTeam_Players)
-            //        .WithRequired(i => i.UserTeam)
-            //        .HasForeignKey(i => i.UserTeamId)
-            //        .WillCascadeOnDelete(true);
+            modelBuilder.Entity<UserProfile>()
+                    .HasMany(u => u.UserTeams)
+                    .WithRequired(i => i.User)
+                    .HasForeignKey(i => i.UserId)
+                    .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<UserTeam>()
+                    .HasMany(u => u.UserTeam_Players)
+                    .WithRequired(i => i.UserTeam)
+                    .HasForeignKey(i => i.UserTeamId)
+                    .WillCascadeOnDelete(true);
 
              base.OnModelCreating(modelBuilder);
         }

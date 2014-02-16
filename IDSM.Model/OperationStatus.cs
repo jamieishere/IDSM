@@ -24,7 +24,8 @@ namespace IDSM.Model
         public string ExceptionInnerMessage { get; set; }
         public string ExceptionInnerStackTrace { get; set; }
 
-        public static OperationStatus CreateFromException(string message, Exception ex)
+        //public static OperationStatus CreateFromException(string message, Exception ex, bool doLog = false)
+        public static OperationStatus CreateFromException(string message, Exception ex, bool doLog = false)
         {
             OperationStatus opStatus = new OperationStatus
             {
@@ -40,6 +41,7 @@ namespace IDSM.Model
                 opStatus.ExceptionInnerMessage = (ex.InnerException == null) ? null : ex.InnerException.Message;
                 opStatus.ExceptionInnerStackTrace = (ex.InnerException == null) ? null : ex.InnerException.StackTrace;
             }
+
             return opStatus;
         }
     }

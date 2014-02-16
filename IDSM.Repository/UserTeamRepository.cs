@@ -6,60 +6,69 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IDSM.Logging.Services.Logging.Log4Net;
-
+using IDSM.Exceptions;
+using IDSM.Logging.Services.Logging;
+using System.Transactions;
+using System.Data.Common;
 
 namespace IDSM.Repository
 {
-    public class UserTeamRepository : RepositoryBase<IDSMContext>, IUserTeamRepository
+    public class UserTeamRepository : RepositoryBase<UserTeam>, IUserTeamRepository
     {
+        public UserTeamRepository(IDSMContext context) : base(context) { }
 
         public IEnumerable<UserTeam> GetAllUserTeams()
         {
-            using (DataContext)
-            {
-                var ut = DataContext.UserTeams.ToList();
-                return ut;
-            }
+            var ut = DataContext.UserTeams.ToList();
+            return ut;
         }
 
         public List<UserTeam> GetAllUserTeamsForGame(int gameId, string orderBy)
         {
-            using (DataContext)
+            List<UserTeam> ut = new List<UserTeam>();
+            switch (orderBy)
             {
-                List<UserTeam> ut = new List<UserTeam>();
-                switch (orderBy){
-                    case "Id":
-                        ut = DataContext.UserTeams.Where(t => t.GameId == gameId).OrderBy(o=>o.Id).ToList();
-                        break;
-                    case "OrderPosition":
-                        ut = DataContext.UserTeams.Where(t => t.GameId == gameId).OrderBy(o=>o.OrderPosition).ToList();
-                        break;
-                }
-                return ut;
+                case "Id":
+                    ut = DataContext.UserTeams.Where(t => t.GameId == gameId).OrderBy(o => o.Id).ToList();
+                    break;
+                case "OrderPosition":
+                    ut = DataContext.UserTeams.Where(t => t.GameId == gameId).OrderBy(o => o.OrderPosition).ToList();
+                    break;
             }
+            return ut;
         }
 
-        // Get a userteam base on UserTeamID, or based on GameID & UserID
-        public UserTeam GetUserTeam(int userteamid = 0, int gameid = 0, int userid = 0)
+        /// <summary>
+        /// TryGet a UserTeam by UserTeamId, OR with GameID & UserID
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <param name="gameId"></param>
+        /// <param name="userId"></param>
+        /// <param name="userTeam"></param>
+        /// <returns>OperationStatus(Status=True) & UserTeam or OperationStatus(Status=False) & null</returns>
+        public Boolean TryGetUserTeam(out UserTeam userTeam, int userTeamId = 0, int gameId = 0, int userId = 0)
         {
-            using (DataContext)
-            {
-                var ut = (userteamid != 0) ?
-                                            DataContext.UserTeams.Include("User").Include("Game").Include("UserTeam_Players").SingleOrDefault(s => s.Id == userteamid) :
-                                            // had to change this from SingleOrDefault to FirstOrDefault because the query returned an error
-                                            //  "Sequence has more then one element" - the table had multiple rows while I was testing with same gameid/userid
-                                            //  this prevents it
-                                            DataContext.UserTeams.Include("User").Include("Game").Include("UserTeam_Players").FirstOrDefault(s => s.GameId == gameid && s.UserId == userid);
-                if (ut == null)
-                {
-                    // either return null or throw error not found.
-                }
-                if (ut is UserTeam)
-                {
-                    // do nothing
-                }
+            userTeam = GetUserTeam(userTeamId, gameId, userId);
+            if (userTeam == null) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Get a UserTeam by UserTeamId, OR with GameID & UserID
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <param name="gameId"></param>
+        /// <param name="userId"></param>
+        /// <returns>UserTeam or null</returns>
+        private UserTeam GetUserTeam(int userTeamId = 0, int gameId = 0, int userId = 0)
+        {
+          //  using (DataContext)
+            //{
+                UserTeam ut = (userTeamId != 0) ?
+                    DataContext.UserTeams.Include("UserTeam_Players").SingleOrDefault(s => s.Id == userTeamId) :
+                    DataContext.UserTeams.Include("UserTeam_Players").FirstOrDefault(s => s.GameId == gameId && s.UserId == userId);
                 return ut;
-            }
+           // }
         }
 
         /// <summary>
@@ -70,74 +79,77 @@ namespace IDSM.Repository
         /// <returns></returns>
         public UserTeam GetUserTeamByOrderPosition(int orderPosition, int gameId)
         {
-            using (DataContext)
+            var ut = DataContext.UserTeams.Include("User").SingleOrDefault(s => s.OrderPosition == orderPosition && s.GameId==gameId);
+            if (ut == null)
             {
-                var ut = DataContext.UserTeams.Include("User").SingleOrDefault(s => s.OrderPosition == orderPosition && s.GameId==gameId);
-                if (ut == null)
-                {
-                    // either return null or throw error not found.
-                }
-                if (ut is UserTeam)
-                {
-                    // do nothing
-                }
-                return ut;
+                // either return null or throw error not found.
             }
+            if (ut is UserTeam)
+            {
+                // do nothing
+            }
+            return ut;
+        }
+
+        // TODO:
+        // Prevent duplicates being created.
+        public OperationStatus SaveUserTeamPlayer(int userteamid, int  gameid, int pixelposy, int pixelposx, int playerid)
+        {
+            return SaveUTPlayer(userteamid, gameid, pixelposy, pixelposx, playerid);
         }
 
 
-
-
-        public OperationStatus SaveUserTeamPlayer(int userteamid, int  gameid, int pixelposy, int pixelposx, int playerid)
+        public OperationStatus SaveUTPlayer(int userteamid, int gameid, int pixelposy, int pixelposx, int playerid)
         {
-            using (DataContext)
-            {
-                UserTeam_Player player = new UserTeam_Player() { UserTeamId = userteamid, GameId = gameid, PixelPosX = pixelposx, PixelPosY = pixelposy, PlayerId = playerid };
+            UserTeam_Player player = new UserTeam_Player() { UserTeamId = userteamid, GameId = gameid, PixelPosX = pixelposx, PixelPosY = pixelposy, PlayerId = playerid };
 
-                // does this userteam_player exist?
-                // NOTE THIS CHECK IS NOW REDUNDANT AS WE DELETE THE WHOLE USER TEAM BEFORE ADDING IT AGAIN.
-                // NOTE - IT IS NOT NOW REDUNDANT AS WE AREN'T USING THE SAVEUSERTEAM FUNCTION - WE ARE SAVING INDIVIDUAL USERPLAYERS TO DB everytime we click 'ADD'
+                 var temp = DataContext.UserTeam_Players.Where(p => p.PlayerId == playerid && p.UserTeamId == userteamid).SingleOrDefault();
 
-
-                // NOTE: - finding entities:
-                // http://msdn.microsoft.com/en-us/data/jj573936.aspx
-                // using a query = a round trip to the database.  Can avoid this with .Find() but we don't have a primary key
-
-                // using EF (this works)
-                //var temp = DataContext.UserTeam_Players.FirstOrDefault(p => p.PlayerId == playerid &&
-                //                            p.UserTeamId == userteamid);
-                
-                // using the base class (RepositoryBase) Get method.  Note how it is called.
-                var temp = base.Get<UserTeam_Player>(p => p.PlayerId == playerid && p.UserTeamId == userteamid);
-                    
-                // if userteam_player exists, return
+                // if userteam_player already exists, return true
                 if (temp != null) return new OperationStatus { Status = true };
-
-
-                //NOTE!!!!!!!!!
-                // NONE OF THE ABOVE IS NECESSARY
-                // BECAUSE THERE IS A CHECK IN THE SAVEUSERTEAM METHOD AGAINST ALL EXISTING USERTEAMPLAYER IDS... 
-                // THAT IS BETTER BECAUSE ITS ONLY 1 DB ACCESS, INSTEAD OF EVERY PLATYER
-
-
 
                 try
                 {
+                    //unitOfWork.UserTeamRepository.
                     DataContext.UserTeam_Players.Add(player);
-                    DataContext.SaveChanges();
+                    // if DataContext.Database.Connection.
+                    //DataContext.SaveChanges();
                 }
                 catch (Exception ex)
                 {
-                    return OperationStatus.CreateFromException("Error saving userteam player.", ex);
+                    return OperationStatus.CreateFromException("Error - SaveUserTeamPlayer.", ex);
                 }
                 return new OperationStatus { Status = true };
+           // }
+        }
+
+        public OperationStatus SaveUTPlayer(int userteamid, int  gameid, int pixelposy, int pixelposx, int playerid, IDSMContext context)
+        {
+            UserTeam_Player player = new UserTeam_Player() { UserTeamId = userteamid, GameId = gameid, PixelPosX = pixelposx, PixelPosY = pixelposy, PlayerId = playerid };
+
+            // using the base class (RepositoryBase) Get method.  Note how it is called.
+           // var temp = base.Get<UserTeam_Player>(p => p.PlayerId == playerid && p.UserTeamId == userteamid);
+            var temp = context.UserTeam_Players.SingleOrDefault(p => p.PlayerId == playerid && p.UserTeamId == userteamid);
+ 
+            // if userteam_player already exists, return true
+            if (temp != null) return new OperationStatus { Status = true };
+
+            try
+            {
+                context.UserTeam_Players.Add(player);
+                context.SaveChanges();
             }
+            catch (Exception ex)
+            {
+                return OperationStatus.CreateFromException("Error - SaveUserTeamPlayer.", ex);
+            }
+            return new OperationStatus { Status = true };
         }
 
         public OperationStatus DeleteUserTeam(UserTeam userTeam)
         {
-            using (DataContext)
-            {
+          //  using (DataContext)
+           // {
                 try
                 {
                    // DataContext.UserTeams.Remove(userTeam); //can this cascade - delete all userteam players?  must set a foreign key.
@@ -148,7 +160,7 @@ namespace IDSM.Repository
 
                     //also chekc that the reason this does a cascade delete (deletes all the userteam players too), is beacause I set the cascade to true in IDSMContext (check if I remove it, if the cascade still happens)
 
-                    DataContext.Entry(userTeam).State = System.Data.EntityState.Deleted;
+                    DataContext.Entry(userTeam).State = System.Data.Entity.EntityState.Deleted;
                     DataContext.SaveChanges();
                 }
                 catch (Exception ex)
@@ -156,14 +168,14 @@ namespace IDSM.Repository
                     return OperationStatus.CreateFromException("Error deleting userteam.", ex);
                 }
                 return new OperationStatus { Status = true };
-            }
+            //}
         }
 
         public OperationStatus SaveUserTeam(UserTeam team)
         {
-            using (DataContext)
-            {
-               // var opStatus = new OperationStatus { Status = false };
+          //  using (DataContext)
+          //  {
+                // var opStatus = new OperationStatus { Status = false };
 
                 try
                 {
@@ -182,85 +194,72 @@ namespace IDSM.Repository
                     return OperationStatus.CreateFromException("Error updating userteam.", ex);
                 }
                 return new OperationStatus { Status = true };
-            }
+           // }
         }
 
-        public OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<UserTeam_Player> uTPlayers)
-        //public OperationStatus SaveUserTeam(int userteamid, int gameid, IEnumerable<Player> players)
-        {
-            using (DataContext)
-            {
-                var opStatus = new OperationStatus { Status = false };
-                try
-                {
-                    
-                    // now i want to 
+        ///// <summary>
+        ///// Saves a UserTeam.  Requires the UserTeamId, GameId, and the list of UserTeam_Players to be saved.
+        ///// TODO:
+        ///// Save the team in a single transaction?
+        ///// See this link for how to crate a TransactionScope & use .SaveChanges(false) then .AcceptAllChanges.
+        ///// http://stackoverflow.com/questions/815586/entity-framework-using-transactions-or-savechangesfalse-and-acceptallchanges
+        ///// </summary>
+        ///// <param name="userTeamId"></param>
+        ///// <param name="gameId"></param>
+        ///// <param name="uTPlayers"></param>
+        ///// <returns></returns>
+        //public OperationStatus SaveUserTeam(int userTeamId, int gameId, IEnumerable<UserTeam_Player> uTPlayers)
+        //{
+        //    using (DataContext)
+        //    {
+        //        try
+        //        {
+        //            UserTeam _userTeam = null;
+        //            OperationStatus _opStatus = null;
 
+        //            // if we found a UserTeam, save the players
+        //            if (TryGetUserTeam(out _userTeam, userTeamId: userTeamId))
+        //            {
+        //                // get ids of all UserTeam_Players for all UserTeams for this game
+        //                var _utpids = from utp in DataContext.UserTeam_Players
+        //                              where utp.GameId == gameId
+        //                              select utp.PlayerId;
+        //                List<int> temp = _utpids.ToList();
 
-                    // There might be a better wya of doing this - using .contains, or icomparere or iequatable (objects)
-                    //     see http://www.codeproject.com/Articles/20592/Implementing-IEquatable-Properly
-                    // but it works for now
-                    
-                    // get current userteam players (to check against)
-                    UserTeam _currentUserTeam = GetUserTeam(userteamid);
-                    List<UserTeam_Player> UserTeam_Players = (List<UserTeam_Player>)_currentUserTeam.UserTeam_Players;
+        //                foreach (UserTeam_Player m in uTPlayers)
+        //                {
+        //                    // if the UserTeam_Player does not already exist in this game, save the player
+        //                    if (!temp.Any() || (temp.IndexOf(m.PlayerId) == -1))
+        //                    {
+        //                        _opStatus = SaveUserTeamPlayer(userTeamId, gameId, 1, 1, m.PlayerId);
+        //                        if (!_opStatus.Status)
+        //                        {
+        //                            // if save fails for any reason, tell user to try again
+        //                            return new OperationStatus { Status = false, Message = _opStatus.Message };
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                return new OperationStatus { Status = false, Message = _opStatus.Message};
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            // if save fails for any reason, tell user to try again
+        //            return OperationStatus.CreateFromException("Could not save UserTeam.  Please try again.", ex);
+        //        }
+        //        return new OperationStatus { Status = true };
+        //    }
+        //}
 
-                    var utpids = from utp in DataContext.UserTeam_Players
-                                 select utp.PlayerId;
-                    List<int> temp = utpids.ToList();
-
-
-                    //foreach (Player m in players)
-                    foreach (UserTeam_Player m in uTPlayers)
-                    {
-
-                        //
-
-                        // check UTPlayer doesn't already exist
-                        //if (!UserTeam_Players.Contains(m))
-                        // if tmep has any elements & if the current id is not in them
-                        //if ((temp.IndexOf(m.Player.Id) == -1) && (temp.Any()))
-
-                       // int test = temp.IndexOf(m.Player.Id);
-
-
-
-                        if (!temp.Any() || (temp.IndexOf(m.PlayerId) == -1))
-                        //if (!temp.Any() || (temp.IndexOf(m.Player.Id) == -1))
-                        {
-                            //opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Id);
-                            //opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Player.Id);
-                            opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.PlayerId);
-                            if (!opStatus.Status)
-                            {
-                                return OperationStatus.CreateFromException("Error saving userteam.", null);
-                            }
-                        }
-                        //else if ((temp.IndexOf(m.Player.Id) == -1))
-                        //{
-                        //    //opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Id);
-                        //    opStatus = SaveUserTeamPlayer(userteamid, gameid, 1, 1, m.Player.Id);
-                        //    if (!opStatus.Status)
-                        //    {
-                        //        return OperationStatus.CreateFromException("Error saving userteam.", null);
-                        //    }
-                        //}
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return OperationStatus.CreateFromException("Error saving userteam.", ex);
-                }
-                return new OperationStatus { Status = true };
-            }
-        }
-
-        //public OperationStatus CreateUserTeam(User user, int gameid)
 
         public OperationStatus CreateUserTeam(int userid, int gameid)
         {
-            using (DataContext)
-            {
+          // //using (DataContext)
+           // {
+                var opStatus = new OperationStatus { Status = false };
                 UserTeam ut = new UserTeam() { UserId = userid, GameId = gameid };
                 try
                 {
@@ -271,11 +270,11 @@ namespace IDSM.Repository
                 {
                     return OperationStatus.CreateFromException("Error creating userteam.", ex);
                 }
-                Log4NetLogger logger = new Log4NetLogger();
-                logger.Info("Creating UserTeam: userid:"+userid+" gameid:"+gameid);
+               // Log4NetLogger logger = new Log4NetLogger();
+               // logger.Info("Creating UserTeam: userid:"+userid+" gameid:"+gameid);
 
                 return new OperationStatus { Status = true, OperationID = ut.Id};
-            }
+           // }
         }
 
         

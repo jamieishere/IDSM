@@ -155,7 +155,7 @@ using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
             <!-- creates an link that calls the action BlankPlayerRow, and adds a class to the link of 'additem' - see JQUERY above -->@*
             @Html.ActionLink("Add to team", "BlankPlayerRow", new { id = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
             }*@
-                 @Html.ActionLink("Add to team", "AddPlayer", new { id = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
+                 @Html.ActionLink("Add to team", "AddPlayer", new { playerId = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
             }
         </td>
     </tr>

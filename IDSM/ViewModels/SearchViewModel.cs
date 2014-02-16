@@ -14,7 +14,8 @@ namespace IDSM.ViewModel
     /// </summary>
     public class SearchViewModel
     {
-        public IEnumerable<Player> Players_SearchedFor { get; set; }
+        //public IEnumerable<Player> Players_SearchedFor { get; set; }
+        public IEnumerable<PlayerDto> Players_SearchedFor { get; set; }
         public IEnumerable<UserTeam_Player> Players_Chosen { get; set; }
         //public IEnumerable<Player> Players_Chosen { get; set; }
         public int GameId { get; set; }
@@ -25,5 +26,10 @@ namespace IDSM.ViewModel
         public int UserTeamOrderPosition { get; set; }
 
         public string AddedPlayerMessage { get; set; }
+    }
+
+    public class PlayerDto : Player
+    {
+        public bool HasBeenChosen { get; set; }
     }
 }

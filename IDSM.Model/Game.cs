@@ -25,7 +25,7 @@ namespace IDSM.Model
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        [ForeignKey("Creator")]
+        //[ForeignKey("Creator")]
         public int CreatorId { get; set; }
         public string Name { get; set; }
         public int CurrentOrderPosition { get; set; }
@@ -35,5 +35,6 @@ namespace IDSM.Model
 
         //navigation properties
         public virtual ICollection<UserTeam> UserTeams { get; set; }
+        public virtual UserProfile Creator { get; set; }
     }
 }

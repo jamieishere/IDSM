@@ -14,6 +14,35 @@ namespace IDSM.Repository
 {
     public class PlayerRepository : RepositoryBase<IDSMContext>, IPlayerRepository
     {
+        public PlayerRepository(IDSMContext context) : base(context) { }
+
+        public Boolean TryGetPlayer(out Player player, int playerId)
+        {
+            player = GetPlayer(playerId);
+            if (player == null) return false;
+            return true;
+        }
+
+        public Boolean nTryGetPlayer(out Player player, int playerId)
+        {
+            player = nGetPlayer(playerId);
+            if (player == null) return false;
+            return true;
+        }
+
+        public Player nGetPlayer(int playerId)
+        {
+           // using (DataContext)
+         //   {
+                Player pl = DataContext.Players.SingleOrDefault(s => s.Id == playerId);
+                if (pl == null)
+                {
+                    return null;
+                }
+                return pl;
+            //}
+        }
+
         /// <summary>
         /// GetPlayer
         /// Gets a Player by Id
@@ -22,15 +51,15 @@ namespace IDSM.Repository
         /// <returns>Player</returns>
         public Player GetPlayer(int playerId)
         {
-            using (DataContext)
-            {
+          //  using (DataContext)
+          //  {
                 Player pl = DataContext.Players.SingleOrDefault(s => s.Id == playerId);
                 if (pl == null)
                 {
                     return null;
                 }
                 return pl;
-            }
+            //}
         }
 
         /// <summary>
@@ -40,11 +69,11 @@ namespace IDSM.Repository
         /// <returns>IEnumerable<Player></returns>
         public IEnumerable<Player> GetAllPlayers()
         {
-            using (DataContext)
-            {
+          //  using (DataContext)
+          //  {
                 var pl = DataContext.Players.ToList();
                 return pl;
-            }
+         //   }
         }
 
         /// <summary>
@@ -59,14 +88,14 @@ namespace IDSM.Repository
         /// </remarks>
         public int[] GetAllChosenPlayerIdsForGame(int gameId) 
         {
-            using (DataContext)
-            {
+          //  using (DataContext)
+          //  {
                 //var pl = DataContext.UserTeam_Players.ToList();
                 var _chosenPlayers = from cp in DataContext.UserTeam_Players
                               where cp.GameId == gameId
                               select cp.PlayerId;
                 return _chosenPlayers.ToArray();
-            }
+           // }
         }
 
         /// <summary>
@@ -77,11 +106,11 @@ namespace IDSM.Repository
         /// <returns>IEnumerable<UserTeam_Player></returns>
         public IEnumerable<UserTeam_Player> GetAllChosenPlayersForGame(int gameid)
         {
-            using (DataContext)
-            {
+           // using (DataContext)
+          //  {
                 var chosenPlayers = DataContext.UserTeam_Players.Include("Player").ToList().Where(p => p.GameId ==gameid);
                 return chosenPlayers.ToList();
-            }
+           // }
         }
 
         /// <summary>
@@ -92,11 +121,37 @@ namespace IDSM.Repository
         /// <returns>IEnumerable<UserTeam_Player></returns>
         public IEnumerable<UserTeam_Player> GetAllChosenPlayersForUserTeam(int userTeamId)
         {
-            using (DataContext)
-            {
+         //   using (DataContext)
+         //   {
+                //var chosenPlayers = iGetAllChosenPlayersForUserTeam(userTeamId, DataContext);
                 var chosenPlayers = DataContext.UserTeam_Players.Include("Player").ToList().Where(p => p.UserTeamId == userTeamId);
                 return chosenPlayers.ToList();
-            }
+          //  }
+        }
+
+        /// <summary>
+        /// GetAllChosenPlayersForUserTeam
+        /// Gets all the UserTeam_Players currently selected by a specific UserTeam
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <returns>IEnumerable<UserTeam_Player></returns>
+        public IEnumerable<UserTeam_Player> nGetAllChosenPlayersForUserTeam(int userTeamId)
+        {
+                var chosenPlayers = iGetAllChosenPlayersForUserTeam(userTeamId, DataContext);
+                return chosenPlayers.ToList();
+        }
+
+
+        /// <summary>
+        /// GetAllChosenPlayersForUserTeam
+        /// Gets all the UserTeam_Players currently selected by a specific UserTeam
+        /// </summary>
+        /// <param name="userTeamId"></param>
+        /// <returns>IEnumerable<UserTeam_Player></returns>
+        public IEnumerable<UserTeam_Player> iGetAllChosenPlayersForUserTeam(int userTeamId, IDSMContext context)
+        {
+                var chosenPlayers = context.UserTeam_Players.Include("Player").ToList().Where(p => p.UserTeamId == userTeamId);
+                return chosenPlayers.ToList();
         }
 
         /// <summary>
@@ -106,8 +161,8 @@ namespace IDSM.Repository
         /// <returns>IEnumerable<string></returns>
         public IEnumerable<string> GetAllClubs()
         {
-            using (DataContext)
-            {
+       //     using (DataContext)
+        //    {
                 var clubLst = new List<string>();
                 var clubQry = from fp in DataContext.Players
                               orderby fp.Club
@@ -115,7 +170,7 @@ namespace IDSM.Repository
                 clubLst.AddRange(clubQry.Distinct());
 
                 return clubLst;
-            }
+          //  }
         }
 
         /// <summary>
@@ -138,8 +193,8 @@ namespace IDSM.Repository
         /// <returns>OperationStatus</returns>
         public static OperationStatus ProcessCSVHelper(string filePath, IDSMContext DataContext)
         {
-            using (DataContext)
-            {
+           // using (DataContext)
+           // {
                 string Feedback = string.Empty;
                 StreamReader srCSV = new StreamReader(filePath);
                 CsvReader csvReader = new CsvReader(srCSV);
@@ -175,7 +230,7 @@ namespace IDSM.Repository
                 csvReader.Dispose();
 
                 return new OperationStatus { Status = true };
-            }
+           // }
         }
     }
 }

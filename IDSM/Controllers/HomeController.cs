@@ -1,5 +1,4 @@
 ﻿using IDSM.Model;
-using IDSM.Repository;
 using IDSM.ViewModel;
 using System;
 using System.Collections.Generic;
@@ -10,21 +9,23 @@ using System.Web;
 using System.Web.Mvc;
 using System.Configuration;
 using IDSM.Logging.Services.Logging;
+using IDSM.ServiceLayer;
 
 namespace IDSM.Controllers
 {
     public class HomeController : Controller
     {
-        private IPlayerRepository _repository;
+        //private IPlayerRepository _repository;
+        private IService _service;
 
         public HomeController()
         {
-            _repository = new PlayerRepository();
+            //_repository = new PlayerRepository();
         }
 
-        public HomeController(IPlayerRepository repository)
+        public HomeController(IService service)
         {
-            _repository = repository;
+            _service = service;
         }
 
         public ViewResult Index()
@@ -102,7 +103,7 @@ namespace IDSM.Controllers
                 {
                     try
                     {
-                        opStatus = PlayerRepository.UploadPlayersCSV(path); 
+                        //opStatus = PlayerRepository.UploadPlayersCSV(path); 
                     }
                     catch (Exception ex)
                     {

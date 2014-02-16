@@ -55,6 +55,7 @@ namespace IDSM.Tests.Controllers
         /// </summary>
         /// <remarks>
         /// Initially, this test failed because the home page text was in a resx file in the App_GlobalResources folder.  App_GlobalResources is not available in a unit test because, behind the scenes, it uses HttpContext.GetGlobalResourceObject.  I had a simlar issue with getting the UserName in the GameController test (created HttpContextFactory, didn't work, then used a WebSecurityWrapper, which did.
+        /// NOTE: Apparently I don't use the websecurity wrapper anymore. Can't find it.
         /// I solve the issue (with resource files) using the approach in this link
         /// http://odetocode.com/Blogs/scott/archive/2009/07/16/resource-files-and-asp-net-mvc-projects.aspx
         ///     Change App_GlobalResources to Resources, then change the properties on the resx files to EmbeddedResource and PublicResXFileCodeGenerator.

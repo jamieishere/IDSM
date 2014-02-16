@@ -18,15 +18,15 @@ namespace IDSM.Model
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        [ForeignKey("UserTeam")]
+        //[ForeignKey("UserTeam")]
         public int UserTeamId { get; set; }
         public int GameId { get; set; }
-        [ForeignKey("Player")]
+       // [ForeignKey("Player")]
         public int PlayerId { get; set; }
         public int PixelPosX { get; set; }
         public int PixelPosY { get; set; }
 
-        //public virtual UserTeam UserTeam{ get; set; }
-        //public virtual Player Player { get; set; }
+        public virtual UserTeam UserTeam{ get; set; }
+        public virtual Player Player { get; set; }
     }
 }
