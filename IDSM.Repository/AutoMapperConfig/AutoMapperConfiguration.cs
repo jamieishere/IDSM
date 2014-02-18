@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using IDSM.Model;
 using IDSM.Repository.DTOs;
+using IDSM.ViewModel;
 
 namespace IDSM.Repository.AutoMapperConfig
 {
@@ -20,11 +21,7 @@ namespace IDSM.Repository.AutoMapperConfig
         private static void ConfigureMapping()
         {
             Mapper.CreateMap<Game, GameUpdateDTO>();
-            //Mapper.CreateMap<UserProfile, UserProfileDTO>();
-            //Mapper.CreateMap<Game, GameDTO>();
-            //Mapper.CreateMap<Game, GameDTO>();
-            //Mapper.CreateMap<Game, GameDTO>();
+            Mapper.CreateMap<Player, PlayerDto>();
         } 
-
     }
 }

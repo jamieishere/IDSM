@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using IDSM.Model;
 using IDSM.Repository;
+using IDSM.ViewModel;
 
 namespace IDSM.ServiceLayer
 {
@@ -56,5 +57,9 @@ namespace IDSM.ServiceLayer
         Boolean TryGetPlayer(out Player player, int playerId);
         Player GetPlayer(int playerId);
         IEnumerable<Player> GetAllPlayers();
+        IEnumerable<PlayerDto> GetPlayersNotPickedForAnyTeam(int userTeamId, string footballClub, string searchString);
+
+        //ViewPlayers Controller methods
+        SearchViewModel GetUserTeamViewModel(int userTeamId, string footballClub, string searchString);
     }
 }

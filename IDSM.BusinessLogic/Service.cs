@@ -12,6 +12,7 @@ using System.Data.Common;
 using AutoMapper;
 using System.IO;
 using CsvHelper;
+using IDSM.ViewModel;
 
 namespace IDSM.ServiceLayer
 {
@@ -45,20 +46,7 @@ namespace IDSM.ServiceLayer
         //public IGameRepository Games { get { return _gameRepository; } }
         //public IUserTeam_PlayerRepository UserTeamPlayers { get { return _userTeamPlayerRepository; } }
 
-        #region GAMES METHODS
-
-
-        /// <summary>
-        /// GetGame
-        /// Get single Game by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns>Game</returns>
-        public Game GetGame(int id)
-        {
-            var _game = _gameRepository.Get(s => s.Id == id);
-            return _game;
-        }
+        #region METHODS USED IN GAME CONTROLLER
 
         /// GetAllGames
         /// Gets all Games
@@ -70,31 +58,11 @@ namespace IDSM.ServiceLayer
             return _games;
         }
 
-        /// <summary>
-        /// TryGetGame
-        /// Get single Game by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns>Game</returns>
-        public Boolean TryGetGame(out Game game, int id)
-        {
-            game = GetGame(id);
-            if (game == null) return false;
-            return true;
-        }
-
         public OperationStatus CreateGame(int creatorId, string name)
         {
             Game game = new Game() { CreatorId = creatorId, Name = name };
             OperationStatus _opStatus = _gameRepository.Create(game);
             return _opStatus;
-        }
-
-        public OperationStatus DoUpdateGame(Game game)
-        {
-            GameUpdateDTO _gameDto = new GameUpdateDTO();
-            _gameDto = Mapper.Map(game, _gameDto);
-            return _gameRepository.Update(_gameDto, g => g.Id == _gameDto.Id);
         }
 
         public OperationStatus StartGame(int gameId)
@@ -171,6 +139,96 @@ namespace IDSM.ServiceLayer
                 //_opStatus = OperationStatus.CreateFromException("Error AddUserToGame: " + exp.Message, exp);
             }
             return _opStatus;
+        }
+
+        #endregion
+
+        #region METHODS USED IN VIEW PLAYERS CONTROLLER
+        // think this is used by viewplayerscontroller - 
+        public SearchViewModel GetUserTeamViewModel(int userTeamId, string footballClub, string searchString)
+        {
+            // setup message to be displayed to User once they have added their chosen player
+            string _addedPlayerMessage = "Current player is {0}.  There are {1} turns left before your go.";
+            string _tmpActiveUserName;
+            int _tmpTurnsLeft = 0;
+            UserTeam _userTeam = null;
+            UserProfile _user = null;
+            IEnumerable<UserTeam_Player> _playersPickedForThisTeam = null;
+            IEnumerable<PlayerDto> _playersNotPickedForAnyTeam = new List<PlayerDto>();
+            Game _game = null;
+
+            // get this UserTeam, User and Game
+            if (!TryGetUserTeam(out _userTeam, userTeamId: userTeamId))
+                //return RedirectToAction("ApplicationError", "Error");
+                throw new ApplicationException();
+            if (!TryGetUser(out _user, _userTeam.UserId))
+                //return RedirectToAction("ApplicationError", "Error");
+                throw new ApplicationException();
+            if (!TryGetGame(out _game, _userTeam.GameId))
+                //return RedirectToAction("ApplicationError", "Error");
+                throw new ApplicationException();
+            if (_game.HasEnded) { _addedPlayerMessage = "The game has ended."; }
+            else
+            {
+                _playersPickedForThisTeam = GetAllChosenUserTeamPlayersForTeam(_userTeam.Id);
+                _playersNotPickedForAnyTeam = GetPlayersNotPickedForAnyTeam(_game.Id, footballClub, searchString);
+
+                List<UserTeam> _userTeamsForGame = GetAllUserTeamsForGame(_game.Id, "Id");
+
+                if (_userTeam.OrderPosition != _game.CurrentOrderPosition)
+                {
+                    UserTeam _activeUt = GetUserTeamByOrderPosition(_game.CurrentOrderPosition, _game.Id);
+                    _tmpActiveUserName = GetUser(_activeUt.UserId).UserName;
+
+                    switch (_activeUt.OrderPosition > _userTeam.OrderPosition)
+                    {
+                        case true:
+                            _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count) ? 1 : _activeUt.OrderPosition - _userTeam.OrderPosition;
+                            break;
+                        case false:
+                            _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count) ? 1 : _userTeam.OrderPosition - _activeUt.OrderPosition;
+                            break;
+                    }
+                    _addedPlayerMessage = String.Format(_addedPlayerMessage, _tmpActiveUserName, _tmpTurnsLeft);
+                }
+            }
+
+            return new SearchViewModel() { Players_SearchedFor = _playersNotPickedForAnyTeam, Players_Chosen = _playersPickedForThisTeam, GameId = _userTeam.GameId, GameName = _game.Name, GameCurrentOrderPosition = _game.CurrentOrderPosition, UserTeamId = _userTeam.Id, UserName = _user.UserName, UserTeamOrderPosition = _userTeam.OrderPosition, AddedPlayerMessage = _addedPlayerMessage };
+        }
+        #endregion
+
+        #region GAMES METHODS NOT IN CONTROLLER
+
+        /// <summary>
+        /// GetGame
+        /// Get single Game by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Game</returns>
+        public Game GetGame(int id)
+        {
+            var _game = _gameRepository.Get(s => s.Id == id);
+            return _game;
+        }
+
+        /// <summary>
+        /// TryGetGame
+        /// Get single Game by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Game</returns>
+        public Boolean TryGetGame(out Game game, int id)
+        {
+            game = GetGame(id);
+            if (game == null) return false;
+            return true;
+        }
+
+        public OperationStatus DoUpdateGame(Game game)
+        {
+            GameUpdateDTO _gameDto = new GameUpdateDTO();
+            _gameDto = Mapper.Map(game, _gameDto);
+            return _gameRepository.Update(_gameDto, g => g.Id == _gameDto.Id);
         }
 
         #endregion
@@ -277,9 +335,6 @@ namespace IDSM.ServiceLayer
         /// </remarks>
         public int[] GetAllChosenUserTeamPlayerIdsForGame(int gameId) 
         {
-           // var _chosenPlayers = from cp in DataContext.UserTeam_Players
-                           // where cp.GameId == gameId
-                           // select cp.PlayerId;
             var _chosenPlayers = _userTeamPlayerRepository.GetList(p => p.GameId ==gameId, p => p.PlayerId).Select(x => x.PlayerId).ToArray();
             return _chosenPlayers;
         }
@@ -387,7 +442,7 @@ namespace IDSM.ServiceLayer
         }
         #endregion
 
-#region PLAYERMETHODS
+        #region PLAYERMETHODS
         public Boolean TryGetPlayer(out Player player, int playerId)
         {
             player = GetPlayer(playerId);
@@ -416,6 +471,41 @@ namespace IDSM.ServiceLayer
         {
             var _players = _playerRepository.GetList().ToList();
             return _players;
+        }
+
+        /// <summary>
+        /// GetPlayersNotPickedForAnyTeam
+        /// Gets all players based on search parameters (club & searchstring) that have not already been picked.
+        /// </summary>
+        /// <returns>IEnumerable<Player></returns>
+        public IEnumerable<PlayerDto> GetPlayersNotPickedForAnyTeam(int gameId, string footballClub, string searchString)
+        {
+            IEnumerable<Player> _footballPlayers = null;
+            int[] _chosenPlayerIds = null;
+
+            _footballPlayers = GetAllPlayers(); 
+            _chosenPlayerIds = GetAllChosenUserTeamPlayerIdsForGame(gameId);
+
+            // map Player to DTO object (has extra properties)
+            IEnumerable<PlayerDto> _footballPlayersDto = new List<PlayerDto>();
+            Mapper.CreateMap<Player, PlayerDto>();
+            _footballPlayersDto = Mapper.Map<IEnumerable<PlayerDto>>(_footballPlayers);
+
+            //update player list, marking those already chosen
+            foreach (PlayerDto p in _footballPlayersDto)
+            {
+                if (_chosenPlayerIds.Contains(p.Id)) { p.HasBeenChosen = true; }
+            }
+
+            //if passed, filter players by searchstring
+            if (!String.IsNullOrEmpty(searchString)) 
+                _footballPlayersDto = _footballPlayersDto.Where(s => s.Name.Contains(searchString));
+
+            //if passed, filter players by club
+            if (!String.IsNullOrEmpty(footballClub))
+                _footballPlayersDto = _footballPlayersDto.Where(x => x.Club == footballClub);
+
+            return _footballPlayersDto;
         }
 
 

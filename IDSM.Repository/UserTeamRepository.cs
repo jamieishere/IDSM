@@ -20,6 +20,5 @@ namespace IDSM.Repository
     public class UserTeamRepository : RepositoryBase<UserTeam>, IUserTeamRepository
     {
         public UserTeamRepository(IDSMContext context) : base(context) { }
-
     }
 }

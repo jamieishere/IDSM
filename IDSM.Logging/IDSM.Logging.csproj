@@ -123,6 +123,8 @@
     <Compile Include="Services\Paging\Pager.cs" />
     <Compile Include="Services\Paging\PagingExtensions.cs" />
     <Compile Include="Services\RSS\FeedResult.cs" />
+    <Compile Include="ViewModels\LoggingIndexModel.cs" />
+    <Compile Include="ViewModels\LoggingManageModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Entities\ErrorLogs.edmx">

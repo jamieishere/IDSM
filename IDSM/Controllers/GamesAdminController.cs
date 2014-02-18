@@ -48,13 +48,6 @@ namespace IDSM.Controllers
             _service = service;
         }
 
-
-        public UserProfile GetUser(UserTeam ut)
-        {
-            UserProfile _user = _service.GetUser(ut.UserId);
-            return _user;
-        }
-
         /// <summary>
         /// Index
         /// </summary>

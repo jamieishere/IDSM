@@ -69,6 +69,10 @@
     <Compile Include="User.cs" />
     <Compile Include="UserTeam.cs" />
     <Compile Include="UserTeam_Player.cs" />
+    <Compile Include="ViewModels\AddUserTeamViewModel.cs" />
+    <Compile Include="ViewModels\ChosenTeamViewModel.cs" />
+    <Compile Include="ViewModels\GameViewModel.cs" />
+    <Compile Include="ViewModels\SearchViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
