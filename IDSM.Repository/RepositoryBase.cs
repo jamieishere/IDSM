@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,6 +41,28 @@ namespace IDSM.Repository
             {
                 throw new ApplicationException("Predicate value must be passed to Get<T>.");
             }
+        }
+
+        public virtual T Get<TKey>(Expression<Func<T, bool>> predicate,
+            Expression<Func<T, TKey>> orderBy)
+        {
+            if (predicate != null)
+            {
+                return DataContext.Set<T>().Where(predicate).SingleOrDefault();
+            }
+            else
+            {
+                throw new ApplicationException("Predicate value must be passed to Get<T>.");
+            }
+        }
+
+        public virtual T Get(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
+        {
+            foreach (var property in includeProperties)
+            {
+                DataContext.Set<T>().Include(property);
+            }
+            return DataContext.Set<T>().Where(predicate).FirstOrDefault();
         }
 
         public virtual IQueryable<T> GetList(Expression<Func<T, bool>> predicate)
@@ -83,6 +106,23 @@ namespace IDSM.Repository
         }
 
 
+        public virtual IQueryable<T> GetList(params Expression<Func<T, object>>[] includeProperties)
+        {
+            try
+            {
+                foreach (var property in includeProperties)
+                {
+                    DataContext.Set<T>().Include(property);
+                }
+                return DataContext.Set<T>();
+            }
+            catch (Exception ex)
+            {
+                //Log error
+            }
+            return null;
+        }
+
         public virtual IQueryable<T> GetList()
         {
             try
@@ -95,22 +135,6 @@ namespace IDSM.Repository
             }
             return null;
         }
-
-        public virtual OperationStatus Save(T entity)
-        {
-            try
-            {
-                DataContext.Set<T>().Add(entity);
-            }
-            catch (Exception exp)
-            {
-                //Log error
-                return new OperationStatus { Status = false };
-            }
-
-            return new OperationStatus { Status = true };
-        }
-
 
         public virtual OperationStatus Create(T entity)
         {
@@ -186,24 +210,25 @@ namespace IDSM.Repository
             return opStatus;
         }
 
-        //public virtual OperationStatus Delete<T>(T entity) where T : class
-        //{
-        //    OperationStatus opStatus = new OperationStatus { Status = true };
+        public virtual OperationStatus Delete(T entity)
+        {
+            OperationStatus opStatus = new OperationStatus { Status = true };
 
-        //    try
-        //    {
-        //        ObjectSet<T> objectSet = DataContext.CreateObjectSet<T>();
-        //        objectSet.Attach(entity);
-        //        objectSet.DeleteObject(entity);
-        //        opStatus.Status = DataContext.SaveChanges() > 0;
-        //    }
-        //    catch (Exception exp)
-        //    {
-        //        return OperationStatus.CreateFromException("Error deleting " + typeof(T), exp);
-        //    }
+            try
+            {
+                // Deleted only removes current object, .Remove() deletes child objects too.
+                //DataContext.Entry(entity).State = System.Data.Entity.EntityState.Deleted;
+                DataContext.Set<T>().Remove(entity);
 
-        //    return opStatus;
-        //}
+            }
+            catch (Exception exp)
+            {
+                return OperationStatus.CreateFromException("Error deleting " + typeof(T), exp);
+            }
+
+            return opStatus;
+        }
+
 
         public void Dispose()
         {

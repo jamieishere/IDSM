@@ -39,11 +39,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AutoMapper">
-      <HintPath>..\packages\AutoMapper.3.0.0\lib\net40\AutoMapper.dll</HintPath>
+    <Reference Include="AutoMapper, Version=3.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AutoMapper.3.1.1\lib\net40\AutoMapper.dll</HintPath>
     </Reference>
-    <Reference Include="AutoMapper.Net4">
-      <HintPath>..\packages\AutoMapper.3.0.0\lib\net40\AutoMapper.Net4.dll</HintPath>
+    <Reference Include="AutoMapper.Net4, Version=3.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AutoMapper.3.1.1\lib\net40\AutoMapper.Net4.dll</HintPath>
     </Reference>
     <Reference Include="DotNetOpenAuth.AspNet, Version=4.0.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
       <HintPath>bin\DotNetOpenAuth.AspNet.dll</HintPath>
@@ -198,6 +200,8 @@
   <ItemGroup>
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\GameController.cs" />
+    <Compile Include="Controllers\GamesAdminController.cs" />
+    <Compile Include="Controllers\GamesController.cs" />
     <Compile Include="Resources\labels.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -216,11 +220,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\ListExtensions.cs" />
-    <Compile Include="Helpers\HTMLPrefixScopeExtensions.cs" />
-    <Compile Include="Helpers\IEnumerableExtensions.cs" />
-    <Compile Include="Helpers\PlayerComparer.cs" />
-    <Compile Include="Helpers\UnityDependencyResolver.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.cs" />
     <Compile Include="Migrations\201304302024507_InitialCreate.Designer.cs">
       <DependentUpon>201304302024507_InitialCreate.cs</DependentUpon>
@@ -237,6 +236,10 @@
     <Compile Include="ViewModels\SearchViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\packages\AutoMapper.3.1.1\lib\net40\AutoMapper.Net4.dll">
+      <Link>AutoMapper.Net4.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="App_Data\ElmahErrors.txt" />
     <Content Include="App_Readme\Elmah.txt" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
@@ -312,10 +315,11 @@
     <Content Include="Views\ViewPlayers\AddPlayerModal.cshtml" />
     <Content Include="Views\Shared\_AdminPartial.cshtml" />
     <Content Include="Views\Shared\_LoggedInPartial.cshtml" />
-    <Content Include="Views\Game\ViewUsers.cshtml" />
+    <Content Include="Views\GameAdmin\ViewUsers.cshtml" />
     <Content Include="Views\Error\AccessDenied.cshtml" />
     <Content Include="Views\Error\NotFound.cshtml" />
     <Content Include="Views\Error\ApplicationError.cshtml" />
+    <Content Include="Views\Game\Index.cshtml" />
     <None Include="_bin_deployableAssemblies\x86\sqlcese40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceqp40.dll" />
     <None Include="_bin_deployableAssemblies\x86\sqlceme40.dll" />
@@ -392,9 +396,9 @@
     <Content Include="Views\Home\Upload.cshtml" />
     <Content Include="Views\ViewPlayers\ChosenPlayerRow.cshtml" />
     <Content Include="Views\ViewPlayers\Index.cshtml" />
-    <Content Include="Views\Game\Index.cshtml" />
-    <Content Include="Views\Game\Create.cshtml" />
-    <Content Include="Views\Game\Details.cshtml" />
+    <Content Include="Views\GameAdmin\Index.cshtml" />
+    <Content Include="Views\GameAdmin\Create.cshtml" />
+    <Content Include="Views\GameAdmin\Details.cshtml" />
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
     <None Include="_bin_deployableAssemblies\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
   </ItemGroup>

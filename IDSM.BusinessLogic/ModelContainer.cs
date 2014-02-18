@@ -35,7 +35,8 @@ namespace IDSM.ServiceLayer
 
                 _Instance.RegisterType<IWebSecurityWrapper, WebSecurityWrapper>(new HierarchicalLifetimeManager())
                          .RegisterType<ILogReportingFacade, LogReportingFacade>(new HierarchicalLifetimeManager())
-                         .RegisterType<IService, Service>(new PerThreadLifetimeManager())
+                         //.RegisterType<IService, Service>(new PerThreadLifetimeManager()) //don't use this, causes all sorts of problems.
+                         .RegisterType<IService, Service>(new HierarchicalLifetimeManager())
                          .RegisterType<IUnitOfWork, UnitOfWork>();
 
                 return _Instance;

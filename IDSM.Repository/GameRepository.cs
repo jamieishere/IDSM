@@ -13,6 +13,12 @@ using IDSM.Repository.DTOs;
 
 namespace IDSM.Repository
 {
+    public interface IGameRepository : IRepositoryBase<Game>
+    {
+        IEnumerable<Game> GetAllGames();
+    }
+
+
     /// <summary>
     /// GameRepository
     /// Contains all methods that access/manipulate Games within IDSMContext
@@ -39,33 +45,5 @@ namespace IDSM.Repository
             return _games;
         }
 
-        ///// <summary>
-        ///// SaveGame
-        ///// </summary>
-        ///// <param name="creatorId"></param>
-        ///// <param name="name"></param>
-        ///// <returns>OperationStatus</returns>
-        //public OperationStatus CreateGame(int creatorId, string name)
-        //{
-        //    Game game = new Game() { CreatorId = creatorId, Name = name };
-        //    OperationStatus _opStatus =  new OperationStatus { Status = true };
-
-        //    _opStatus = Create(game);
-
-        //    DataContext.SaveChanges();
-        //    return _opStatus;
-        //}
-
-        /// <summary>
-        /// UpdateGame
-        /// </summary>
-        /// <param name="game"></param>
-        /// <returns>OperationStatus</returns>
-        public OperationStatus DoUpdateGame(Game game)
-        {
-            GameUpdateDTO _gameDto = new GameUpdateDTO();
-            _gameDto = Mapper.Map(game, _gameDto);
-            return Update(_gameDto, g => g.Id == _gameDto.Id);
-        }
     }
 }

@@ -12,15 +12,17 @@ namespace IDSM.Repository
     public interface IRepositoryBase<T> where T : class
     {
         T Get(Expression<Func<T, bool>> predicate);
+        T Get(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties);
         IQueryable<T> GetList(Expression<Func<T, bool>> predicate);
         IQueryable<T> GetList<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> orderBy);
         IQueryable<T> GetList<TKey>(Expression<Func<T, TKey>> orderBy);
         IQueryable<T> GetList();
+        IQueryable<T> GetList(params Expression<Func<T, object>>[] includeProperties);
         OperationStatus Create(T entity);
-        //OperationStatus Update(T entity, params string[] propsToUpdate);
-        OperationStatus Save();
-     //   OperationStatus Update(T entity, string idColName, params string[] propsToUpdate);
         OperationStatus Update(object dto, Expression<Func<T, bool>> currentEntityFilter);
-       // OperationStatus Delete(T entity);
+        //OperationStatus Update(T entity, params string[] propsToUpdate);
+        //OperationStatus Update(T entity, string idColName, params string[] propsToUpdate);
+        OperationStatus Delete(T entity);
+        OperationStatus Save();
     }
 }

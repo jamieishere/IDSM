@@ -1,111 +1,18 @@
 ﻿@model IDSM.ViewModel.GameViewModel
 @using IDSM.Model;
+
 @{
-    ViewBag.Title = "Games List";
+    ViewBag.Title = "Index";
 }
 
-<h2>Games List</h2>
-<p>
-    @ViewBag.ErrorMessage
-    @TempData["err"]
-</p>
-<p>
-    @Html.ActionLink("Create New Game", "Create")
-</p>
-<table>
-    <tr>
-        <th>
-            @*@Html.DisplayNameFor(model => model.CreatorId)*@
-            Creator: @WebSecurity.CurrentUserName
-        </th>
-        <th>
-            @*@Html.DisplayNameFor(model => model.Name)*@
-            Game Name
-        </th>
-        <th></th>
-        <th>Players (green is current player)</th>
-        <th></th>
-    </tr>
+<h2>Index</h2>
 
-@foreach (var item in Model.Games) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatorId)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @if(!item.HasStarted){
-                @Html.ActionLink("Add Player", "ViewUsers", item)
-            }
-        </td>
-        <td>
-          @*  @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Details", "Details", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id }) |*@
+<h2>List of games requiring action (it's user's go)</h2>
+<h2>List of games currently involved in (games have started)</h2>
+<h2>Banter feed</h2>
 
-            @if(item.HasEnded){
-                 //NOTE:
-                 // instead of foreach here, cuold write a HTML helper extension method (or a method in viewmodel)
-                 // see http://stackoverflow.com/questions/1424015/how-do-i-use-a-function-in-my-asp-net-mvc-view
-                 // method is tidier, but this loop does less data acces....
-               // foreach (var userteam in item.UserTeamsDTO)
-                foreach (var userteam in item.UserTeams)
-                {    
-                    if (userteam.Id == item.WinnerId)
-                    {
-                        <p>Game Finished!  Winner is @userteam.User.UserName</p>
-                    }
-                }
-            }
+<p>change so only creator can add players</p>
+<p>notifications - when it's a player's go, another player can 'notify' them - sends email/text (could posso monetize this somehow... like it costs .001 to notify)... would add up.</p>
+<p>need to handle players not wanting to play / giving up - game needs to smoothly continue</p>
 
-            <div class="userteams">
 
-            @{int userTeamCounter = 0;}
-            @{//foreach (var userteam in item.UserTeamsDTO)
-              }
-            @foreach (var userteam in item.UserTeams)
-            {
-                if (item.HasStarted)
-                {
-                    if (item.CurrentOrderPosition == userteam.OrderPosition)
-                    {
-                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId }, new { @class = "currentplayer" });
-                    }
-                    else
-                    {
-                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId });
-                    }
-                    //@Html.ActionLink(userteam.User.UserName + "this should 404", "ManageUserTeam", new { gameid = 4000, userid = 54352 });
-                }
-                else
-                {
-                    @userteam.User.UserName
-                    //if (!(userTeamCounter == item.UserTeamsDTO.Count))
-                    if (!(userTeamCounter == item.UserTeams.Count))
-                    {
-                        <b>,</b>
-                    }
-                }
-                userTeamCounter++;
-            }
-            
-            </div>
-           
-@*            @Html.ActionLink("Join game as user1", "JoinGame", new { gameid = item.Id, userid=1 }) |
-            @Html.ActionLink("Join game as user2", "JoinGame", new { gameid = item.Id, userid=2 }) |
-            @Html.ActionLink("Join game as user3", "JoinGame", new { gameid = item.Id, userid=3 })*@
-        </td>
-        <td>
-             @if(item.HasStarted){
-                             @Html.ActionLink("Reset Game", "ResetGame", new { gameid = item.Id})
-            }
-             @if(!item.HasStarted){
-                @Html.ActionLink("Start Game", "StartGame", new{gameId = item.Id})
-             }
-        </td>
-    </tr>
-}
-
-</table>

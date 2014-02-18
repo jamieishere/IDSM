@@ -32,13 +32,7 @@ namespace IDSM.Tests.Controllers
         IList<UserTeam_Player> _utp;
         List<Game> _games;
         List<UserTeam> _userteams;
-        Mock<IGameRepository> _mockGameRepository;
-        Mock<IUserTeamRepository> _mockUserTeamRepository;
-        Mock<IUserTeam_PlayerRepository> _mockUserTeamPlayerRepository;
-        Mock<IWebSecurityWrapper> _mockWSW;
-        Mock<IUserRepository> _mockUserRepository;
         Mock<IService> _mockServiceLayer;
-        Mock<IUnitOfWork> _mockUnitOfWork;
 
         public GameControllerTest()
         {
@@ -55,28 +49,14 @@ namespace IDSM.Tests.Controllers
             _games = _fixture.Create<List<Game>>();
             _userteams = _fixture.Create<List<UserTeam>>();
 
-            // Mock the Players Repository using Moq
-            _mockGameRepository = new Mock<IGameRepository>();
-            _mockUserTeamRepository = new Mock<IUserTeamRepository>();
-            _mockUserTeamPlayerRepository = new Mock<IUserTeam_PlayerRepository>();
-            _mockWSW = new Mock<IWebSecurityWrapper>();
-            _mockUserRepository = new Mock<IUserRepository>();
-
-           // _mockUnitOfWork = new Mock<IUnitOfWork>();
-        //    _mockServiceLayer = new Mock<IService>(_mockUnitOfWork.Object);
             _mockServiceLayer = new Mock<IService>();
-            _mockServiceLayer.Setup(s => s.Users).Returns(_mockUserRepository.Object);
-            _mockServiceLayer.Setup(s => s.UserTeamPlayers).Returns(_mockUserTeamPlayerRepository.Object);
-            _mockServiceLayer.Setup(s => s.Games).Returns(_mockGameRepository.Object);
-            _mockServiceLayer.Setup(s => s.UserTeams).Returns(_mockUserTeamRepository.Object);
         }
 
         [Test]
         public void Game_Index_Returns_ViewResult()
         {
             //Arrange
-            //GameController Controller = new GameController(_mockGameRepository.Object, _mockUserTeamRepository.Object, _mockWSW.Object, _mockUserRepository.Object);
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
 
             //Act
             ViewResult result = Controller.Index();
@@ -89,7 +69,9 @@ namespace IDSM.Tests.Controllers
         public void Game_Create_Returns_ViewResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
+            var _opStatus = new OperationStatus();
+            _mockServiceLayer.Setup(s => s.CreateGame(_game.CreatorId, _game.Name)).Returns(_opStatus);
 
             //Act
             ViewResult result = Controller.Create(_game);
@@ -102,7 +84,7 @@ namespace IDSM.Tests.Controllers
         public void Game_ViewUsers_Returns_ActionResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
 
             //Act
             ViewResult result = Controller.ViewUsers(_game);
@@ -115,10 +97,12 @@ namespace IDSM.Tests.Controllers
         public void Game_ResetGame_Returns_ActionResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
+            var _opStatus = new OperationStatus();
+            _mockServiceLayer.Setup(s => s.ResetGame(123)).Returns(_opStatus);
 
             //Act
-            ActionResult result = Controller.ResetGame(_game.Id);
+            ActionResult result = Controller.ResetGame(123);
 
             //Assert
             Assert.IsInstanceOf<ActionResult>(result);
@@ -128,10 +112,12 @@ namespace IDSM.Tests.Controllers
         public void Game_StartGame_Returns_ActionResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
+            var _opStatus = new OperationStatus();
+            _mockServiceLayer.Setup(s => s.StartGame(123)).Returns(_opStatus);
 
             //Act
-            ActionResult result = Controller.StartGame(_game.Id);
+            ActionResult result = Controller.StartGame(123);
 
             //Assert
             Assert.IsInstanceOf<ActionResult>(result);
@@ -141,10 +127,12 @@ namespace IDSM.Tests.Controllers
         public void Game_AddUserToGame_Returns_ActionResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
+            var _opStatus = new OperationStatus();
+            _mockServiceLayer.Setup(s => s.AddUserToGame(123,123)).Returns(_opStatus);
 
             //Act
-            ActionResult result = Controller.AddUserToGame(_user.UserId, _game.Id);
+            ActionResult result = Controller.AddUserToGame(123, 123);
 
             //Assert
             Assert.IsInstanceOf<ActionResult>(result);
@@ -154,13 +142,16 @@ namespace IDSM.Tests.Controllers
         public void Game_ManageUserTeam_Returns_ActionResult()
         {
             //Arrange
-            GameController Controller = new GameController(_mockServiceLayer.Object);
+            GamesAdminController Controller = new GamesAdminController(_mockServiceLayer.Object);
+            var _opStatus = new OperationStatus();
+            UserTeam _ut = null;
+            _mockServiceLayer.Setup(s => s.TryGetUserTeam(out _ut, 123, 123, 123)).Returns(false);
 
             //Act
-            ActionResult result = Controller.ManageUserTeam(_game.Id, _user.UserId);
+            RedirectToRouteResult result = Controller.ManageUserTeam(123, 123);
 
             //Assert
-            Assert.IsInstanceOf<ActionResult>(result);
+            Assert.IsInstanceOf<RedirectToRouteResult>(result);
         }
 
     }

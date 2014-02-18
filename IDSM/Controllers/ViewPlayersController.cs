@@ -77,21 +77,21 @@ namespace IDSM.Controllers
             Game _game = null;
 
             // get all clubs and players
-            _clubs = _service.Players.GetAllClubs(); // if null, this should throw a custom exception
-             _footballPlayers = _service.Players.GetAllPlayers(); // if null, this should throw a cusom exception.
+            _clubs = _service.GetAllClubs(); // if null, this should throw a custom exception
+             _footballPlayers = _service.GetAllPlayers(); // if null, this should throw a cusom exception.
             ViewBag.FootballClub = new SelectList(_clubs);
 
             // get this UserTeam, User and Game
-            if (!_service.UserTeams.TryGetUserTeam(out _userTeam, userTeamId: userTeamId))
+            if (!_service.TryGetUserTeam(out _userTeam, userTeamId: userTeamId))
                 return RedirectToAction("ApplicationError", "Error");
-            if (!_service.Users.TryGetUser(out _user, _userTeam.UserId))
+            if (!_service.TryGetUser(out _user, _userTeam.UserId))
                 return RedirectToAction("ApplicationError", "Error");
             if (!_service.TryGetGame(out _game, _userTeam.GameId))
                 return RedirectToAction("ApplicationError", "Error");
 
             // setup chosenplayers for the game, and for this team
-            _chosenPlayerIds = _service.Players.GetAllChosenPlayerIdsForGame(_userTeam.GameId);
-            _chosenPlayers = _service.Players.GetAllChosenPlayersForUserTeam(_userTeam.Id);
+            _chosenPlayerIds = _service.GetAllChosenUserTeamPlayerIdsForGame(_userTeam.GameId);
+            _chosenPlayers = _service.GetAllChosenUserTeamPlayersForTeam(_userTeam.Id);
                 
             // map Player to DTO object (has extra properties)
             IEnumerable<PlayerDto> _footballPlayersDto = new List<PlayerDto>();
@@ -127,17 +127,17 @@ namespace IDSM.Controllers
             else
             {
                 //List<UserTeam> _userTeamsForGame = _userTeamRepository.GetAllUserTeamsForGame(_game.Id, "Id");
-                List<UserTeam> _userTeamsForGame = _service.UserTeams.GetAllUserTeamsForGame(_game.Id, "Id");
+                List<UserTeam> _userTeamsForGame = _service.GetAllUserTeamsForGame(_game.Id, "Id");
                
                 if (_userTeam.OrderPosition != _game.CurrentOrderPosition)
                 {
                    // UserTeam _activeUt = _userTeamRepository.GetUserTeamByOrderPosition(_game.CurrentOrderPosition, _game.Id);
-                    UserTeam _activeUt = _service.UserTeams.GetUserTeamByOrderPosition(_game.CurrentOrderPosition, _game.Id);
+                    UserTeam _activeUt = _service.GetUserTeamByOrderPosition(_game.CurrentOrderPosition, _game.Id);
                     // User doesn't exist now for UserTeam
                     // Have to write new method to get a User from the Id
                     //_tmpActiveUserName = _activeUt.User.UserName;
                    // _tmpActiveUserName = _userRepository.GetUser(_activeUt.UserId).UserName;
-                    _tmpActiveUserName = _service.Users.Get(u => u.UserId == _activeUt.UserId).UserName;
+                    _tmpActiveUserName = _service.GetUser(_activeUt.UserId).UserName;
 
                     switch (_activeUt.OrderPosition > _userTeam.OrderPosition)
                     {
@@ -181,14 +181,14 @@ namespace IDSM.Controllers
             Player _player = null;
 
             // check a Player exists for this playerId
-            if (!_service.Players.TryGetPlayer(out _player, playerId)) return false;
+            if (!_service.TryGetPlayer(out _player, playerId)) return false;
 
             try
             {
                     // save the UserTeam_Player
                // OperationStatus _op = _userTeamRepository.SaveUTPlayerAndUpdateGame(userTeamId, gameId, 1, 1, playerId);
                 OperationStatus _op = _service.SaveUTPlayerAndUpdateGame(userTeamId, gameId, 1, 1, playerId);
-
+                _service.Save();
             }
             catch (Exception ex)
             {
