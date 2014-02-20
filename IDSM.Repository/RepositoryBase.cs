@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
-using IDSM.Logging.Services.Logging.Log4Net;
-using IDSM.Model;
-using IDSM.Repository.DTOs;
 
 namespace IDSM.Repository
 {
@@ -19,7 +10,7 @@ namespace IDSM.Repository
     ///     Saves duplication of code (instantiating DbContext in every repository class) - 1 place for all repositories.
     ///     In addition contains common resuable methods (Get, GetList, Save, Update, StoredProc, Dispose)
     /// </summary>
-    /// <typeparam name="C"></typeparam>
+    /// <typeparam name="T"></typeparam>
     //public class RepositoryBase<C, T> : IDisposable
     //       where C : DbContext, IDisposedTracker, new()
     public class RepositoryBase<T> : IDisposable where T : class
@@ -28,192 +19,126 @@ namespace IDSM.Repository
 
         public RepositoryBase(IDSMContext context)
         {
-            this.DataContext = context;
+            DataContext = context;
+        }
+
+        public virtual bool TryGet(out T entity, Expression<Func<T, bool>> predicate)
+        {
+            entity = Get(predicate);
+            if (entity == null) return false;
+            return true;
         }
 
         public virtual T Get(Expression<Func<T, bool>> predicate)
         {
             if (predicate != null)
-            {
+                // potential exception - InvalidOperationException.  If want to catch this & throw a nicer user-friendly exception higher up, do so.
                 return DataContext.Set<T>().Where(predicate).SingleOrDefault();
-            }
-            else
-            {
-                throw new ApplicationException("Predicate value must be passed to Get<T>.");
-            }
+
+            throw new ApplicationException("Predicate value must be passed to Get<T>.");
         }
 
         public virtual T Get<TKey>(Expression<Func<T, bool>> predicate,
             Expression<Func<T, TKey>> orderBy)
         {
-            if (predicate != null)
-            {
+            if (predicate != null && orderBy != null)
                 return DataContext.Set<T>().Where(predicate).SingleOrDefault();
-            }
-            else
-            {
-                throw new ApplicationException("Predicate value must be passed to Get<T>.");
-            }
+
+            throw new ApplicationException("Predicate value and Order value must be passed to Get<T>.");
         }
 
         public virtual T Get(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
-            foreach (var property in includeProperties)
+            if (predicate == null || includeProperties == null) throw new ApplicationException("Predicate value and includeProperties must be passed to Get<T>.");
+            foreach (var _property in includeProperties)
             {
-                DataContext.Set<T>().Include(property);
+                DataContext.Set<T>().Include(_property);
             }
             return DataContext.Set<T>().Where(predicate).FirstOrDefault();
         }
 
         public virtual IQueryable<T> GetList(Expression<Func<T, bool>> predicate)
         {
-            try
-            {
+            if (predicate != null)
                 return DataContext.Set<T>().Where(predicate);
-            }
-            catch (Exception ex)
-            {
-                //Log error
-            }
-            return null;
+            throw new ApplicationException("Predicate value must be passed to GetList<T>.");
         }
 
         public virtual IQueryable<T> GetList<TKey>(Expression<Func<T, bool>> predicate,
             Expression<Func<T, TKey>> orderBy)
         {
-            try
-            {
-                return GetList(predicate).OrderBy(orderBy);
-            }
-            catch (Exception ex)
-            {
-                //Log error
-            }
-            return null;
+            return GetList(predicate).OrderBy(orderBy);
         }
 
         public virtual IQueryable<T> GetList<TKey>(Expression<Func<T, TKey>> orderBy)
         {
-            try
-            {
-                return GetList().OrderBy(orderBy);
-            }
-            catch (Exception ex)
-            {
-                //Log error
-            }
-            return null;
+            return GetList().OrderBy(orderBy);
         }
 
 
         public virtual IQueryable<T> GetList(params Expression<Func<T, object>>[] includeProperties)
         {
-            try
+            foreach (var _property in includeProperties)
             {
-                foreach (var property in includeProperties)
-                {
-                    DataContext.Set<T>().Include(property);
-                }
-                return DataContext.Set<T>();
+                DataContext.Set<T>().Include(_property);
             }
-            catch (Exception ex)
-            {
-                //Log error
-            }
-            return null;
+            return DataContext.Set<T>();
         }
 
         public virtual IQueryable<T> GetList()
         {
-            try
-            {
-                return DataContext.Set<T>();
-            }
-            catch (Exception ex)
-            {
-                //Log error
-            }
-            return null;
+            return DataContext.Set<T>();
         }
 
         public virtual OperationStatus Create(T entity)
         {
+            var _opStatus = new OperationStatus { Status = true };
             try
             {
                 DataContext.Set<T>().Add(entity);
             }
-            catch (Exception exp)
+            catch (Exception _exp)
             {
-                //Log error
-                return new OperationStatus { Status = false };
+
+                _opStatus = OperationStatus.CreateFromException("Error creating " + typeof(T) + ".", _exp, true);
             }
 
-            return new OperationStatus { Status = true };
+            return _opStatus;
         }
 
         public OperationStatus Update(object dto, Expression<Func<T, bool>> currentEntityFilter) 
         {
-            OperationStatus _opStatus = new OperationStatus { Status = true };
+            var _opStatus = new OperationStatus { Status = true };
             try
             {
-                var current = DataContext.Set<T>().FirstOrDefault(currentEntityFilter);
-                DataContext.Entry(current).CurrentValues.SetValues(dto);
+                var _current = DataContext.Set<T>().FirstOrDefault(currentEntityFilter);
+                DataContext.Entry(_current).CurrentValues.SetValues(dto);
             }
-            catch (Exception exp) {
-                // prob want this in the service really when call save changes.
-                _opStatus = OperationStatus.CreateFromException("Error updating " + typeof(T) + ".", exp);
-                Log4NetLogger _logger = new Log4NetLogger();
-                _logger.Error(_opStatus.Message, exp);
-                return _opStatus;
+            catch (Exception _exp)
+            {
+                _opStatus = OperationStatus.CreateFromException("Error updating " + typeof(T) + ".", _exp, true);
             }
             return _opStatus;
         }
 
-        public void Update(object dto, params object[] keyValues)
+        public OperationStatus Update(object dto, params object[] keyValues)
         {
-            var current = DataContext.Set<T>().Find(keyValues);
-            DataContext.Entry(current).CurrentValues.SetValues(dto);
-        }
-
-        public virtual OperationStatus Save()
-        {
-            OperationStatus opStatus = new OperationStatus { Status = true };
-
+            var _opStatus = new OperationStatus { Status = true };
             try
             {
-                opStatus.Status = DataContext.SaveChanges() > 0;
+                var _current = DataContext.Set<T>().Find(keyValues);
+                DataContext.Entry(_current).CurrentValues.SetValues(dto);
             }
-            catch (Exception exp)
+            catch (Exception _exp)
             {
-                opStatus = OperationStatus.CreateFromException("Error saving " + typeof(T) + ".", exp);
+                _opStatus = OperationStatus.CreateFromException("Error updating " + typeof(T) + ".", _exp, true);
             }
-
-            return opStatus;
-        }
-
-        
-
-        public OperationStatus ExecuteStoreCommand(string cmdText, params object[] parameters)
-        {
-            var opStatus = new OperationStatus { Status = true };
-
-            try
-            {
-                //opStatus.RecordsAffected = DataContext.ExecuteStoreCommand(cmdText, parameters);
-                //TODO: [Papa] = Have not tested this yet.
-                opStatus.RecordsAffected = DataContext.Database.ExecuteSqlCommand(cmdText, parameters);
-            }
-            catch (Exception exp)
-            {
-                OperationStatus.CreateFromException("Error executing store command: ", exp);
-            }
-            return opStatus;
+            return _opStatus;
         }
 
         public virtual OperationStatus Delete(T entity)
         {
-            OperationStatus opStatus = new OperationStatus { Status = true };
-
+            var _opStatus = new OperationStatus { Status = true };
             try
             {
                 // Deleted only removes current object, .Remove() deletes child objects too.
@@ -221,18 +146,33 @@ namespace IDSM.Repository
                 DataContext.Set<T>().Remove(entity);
 
             }
-            catch (Exception exp)
+            catch (Exception _exp)
             {
-                return OperationStatus.CreateFromException("Error deleting " + typeof(T), exp);
+                return OperationStatus.CreateFromException("Error deleting " + typeof(T) + ".", _exp, true);
             }
-
-            return opStatus;
+            return _opStatus;
         }
-
 
         public void Dispose()
         {
             if (DataContext != null) DataContext.Dispose();
         }
+
+        //public OperationStatus ExecuteStoreCommand(string cmdText, params object[] parameters)
+        //{
+        //    var _opStatus = new OperationStatus { Status = true };
+
+        //    try
+        //    {
+        //        //opStatus.RecordsAffected = DataContext.ExecuteStoreCommand(cmdText, parameters);
+        //        //TODO: [Papa] = Have not tested this yet.
+        //        opStatus.RecordsAffected = DataContext.Database.ExecuteSqlCommand(cmdText, parameters);
+        //    }
+        //    catch (Exception exp)
+        //    {
+        //        OperationStatus.CreateFromException("Error executing store command: ", exp);
+        //    }
+        //    return opStatus;
+        //}
     }
 }

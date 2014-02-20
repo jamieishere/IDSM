@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using IDSM.Model;
+using IDSM.Model.ViewModels;
 using IDSM.Repository.DTOs;
 using IDSM.ViewModel;
 
@@ -20,7 +21,7 @@ namespace IDSM.Repository.AutoMapperConfig
 
         private static void ConfigureMapping()
         {
-            Mapper.CreateMap<Game, GameUpdateDTO>();
+            Mapper.CreateMap<Game, GameUpdateDto>();
             Mapper.CreateMap<Player, PlayerDto>();
         } 
     }

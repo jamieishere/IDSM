@@ -76,7 +76,7 @@ namespace IDSM.Models
             //This can't handle large files.  Figure out how to do it.
             //Actually, write a console application for this... don't want user to have to sit watching web browser
             //Filter player list to only premiership clubs.
-            test = Service.UploadPlayersCSV(path);
+            test = Service.UploadPlayersCsv(path);
         }
     }
 }

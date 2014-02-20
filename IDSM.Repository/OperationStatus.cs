@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using IDSM.Logging.Services.Logging;
 
-namespace IDSM.Model
+namespace IDSM.Repository
 {
     /// <summary>
     /// Utility class that holds all information returned from a database operation.  Better than returning void or bool.
@@ -18,31 +15,38 @@ namespace IDSM.Model
         public bool Status { get; set; }
         public int RecordsAffected { get; set; }
         public string Message { get; set; }
-        public Object OperationID { get; set; }
+        public Object OperationId { get; set; }
         public string ExceptionMessage { get; set; }
         public string ExceptionStackTrace { get; set; }
         public string ExceptionInnerMessage { get; set; }
         public string ExceptionInnerStackTrace { get; set; }
 
-        //public static OperationStatus CreateFromException(string message, Exception ex, bool doLog = false)
         public static OperationStatus CreateFromException(string message, Exception ex, bool doLog = false)
         {
-            OperationStatus opStatus = new OperationStatus
+            var _opStatus = new OperationStatus
             {
                 Status = false,
                 Message = message,
-                OperationID = null
+                OperationId = null
             };
 
             if (ex != null)
             {
-                opStatus.ExceptionMessage = ex.Message;
-                opStatus.ExceptionStackTrace = ex.StackTrace;
-                opStatus.ExceptionInnerMessage = (ex.InnerException == null) ? null : ex.InnerException.Message;
-                opStatus.ExceptionInnerStackTrace = (ex.InnerException == null) ? null : ex.InnerException.StackTrace;
+                _opStatus.ExceptionMessage = ex.Message;
+                _opStatus.ExceptionStackTrace = ex.StackTrace;
+                _opStatus.ExceptionInnerMessage = (ex.InnerException == null) ? null : ex.InnerException.Message;
+                _opStatus.ExceptionInnerStackTrace = (ex.InnerException == null) ? null : ex.InnerException.StackTrace;
             }
 
-            return opStatus;
+            if (doLog)
+            {
+                ILogger _logger = LogFactory.Logger();
+                _logger.Error(message, ex);
+            }
+
+            return _opStatus;
         }
+
+
     }
 }

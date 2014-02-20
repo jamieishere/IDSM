@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IDSM.Repository.DTOs
 {
-    public class GameUpdateDTO
+    public class GameUpdateDto
     {
         public int Id { get; set; }
         public int CreatorId { get; set; }

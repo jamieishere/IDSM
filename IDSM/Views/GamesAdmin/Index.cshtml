@@ -71,11 +71,13 @@
                 {
                     if (item.CurrentOrderPosition == userteam.OrderPosition)
                     {
-                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId }, new { @class = "currentplayer" });
+                        @Html.ActionLink(userteam.User.UserName,"Index", "ViewPlayers", new{userTeamId = userteam.Id}, new { @class = "currentplayer" });
+                       // @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId }, new { @class = "currentplayer" });
                     }
                     else
                     {
-                        @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId });
+                        @Html.ActionLink(userteam.User.UserName, "Index", "ViewPlayers", new { userTeamId = userteam.Id });
+                       // @Html.ActionLink(userteam.User.UserName, "ManageUserTeam", new { gameid = item.Id, userid = userteam.UserId });
                     }
                     //@Html.ActionLink(userteam.User.UserName + "this should 404", "ManageUserTeam", new { gameid = 4000, userid = 54352 });
                 }

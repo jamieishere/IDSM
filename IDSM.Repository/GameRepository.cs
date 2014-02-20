@@ -37,11 +37,6 @@ namespace IDSM.Repository
                     .Include(x => x.UserTeams)
                     .Include(x => x.UserTeams.Select(y => y.User))
                     .ToList();
-            if (_games == null)
-            {
-                // log error
-                return null;
-            }
             return _games;
         }
 

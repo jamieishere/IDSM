@@ -35,8 +35,7 @@ namespace IDSM.Controllers
           /// <returns></returns>
           public ViewResult Index()
           {
-              GameViewModel _gvm = new GameViewModel { Games = _service.GetAllGames() };
-              return View(_gvm);
+              return View();
           }
 
     }

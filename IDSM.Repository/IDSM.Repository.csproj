@@ -85,10 +85,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoMapperConfig\AutoMapperConfiguration.cs" />
+    <Compile Include="BanterRepository.cs" />
     <Compile Include="DTOs\GameUpdateDTO.cs" />
     <Compile Include="IRepositoryBase.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="OperationStatus.cs" />
     <Compile Include="RepositoryBase.cs">
       <SubType>Code</SubType>
     </Compile>
