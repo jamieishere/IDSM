@@ -216,82 +216,103 @@ namespace IDSM.ServiceLayer
 
             IEnumerable<Banter> _banterForThisGame = _banters.GetList();
 
-
-            try
+            if (userTeamId == 0)
             {
-                // setup message to be displayed to User once they have added their chosen player
-                string _addedPlayerMessage = "Current player is {0}.  There are {1} turns left before your go.";
-                int _tmpTurnsLeft = 0;
-                UserTeam _userTeam = null;
-                UserProfile _user = null;
-                IEnumerable<UserTeam_Player> _playersPickedForThisTeam = null;
-                IEnumerable<PlayerDto> _playersNotPickedForAnyTeam = new List<PlayerDto>();
-                Game _game = null;
-
-                // get this UserTeam, User and Game
-                if (!_userTeams.TryGet(out _userTeam, x => x.Id == userTeamId))
-                    throw new ApplicationException();
-                if (!_users.TryGet(out _user, x => x.UserId == _userTeam.UserId))
-                    throw new ApplicationException();
-                if (!_games.TryGet(out _game, x => x.Id == _userTeam.GameId))
-                    throw new ApplicationException();
-
-                if (_game.HasEnded)
-                {
-                    _addedPlayerMessage = "The game has ended.";
-                }
-                else
-                {
-                    _playersPickedForThisTeam = GetAllChosenUserTeamPlayersForTeam(_userTeam.Id);
-                    _playersNotPickedForAnyTeam = GetPlayersNotPickedForAnyTeam(_game.Id, footballClub, searchString);
-
-                    List<UserTeam> _userTeamsForGame = _userTeams.GetList(x => x.GameId == _game.Id).ToList();
-
-                    if (_userTeam.OrderPosition != _game.CurrentOrderPosition)
-                    {
-                        UserTeam _activeUt =
-                            _userTeams.Get(s => s.OrderPosition == _game.CurrentOrderPosition && s.GameId == _game.Id,
-                                u => u.User);
-
-                        string _tmpActiveUserName = _users.Get(x => x.UserId == _activeUt.UserId).UserName;
-
-                        switch (_activeUt.OrderPosition > _userTeam.OrderPosition)
-                        {
-                            case true:
-                                _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count)
-                                    ? 1
-                                    : _activeUt.OrderPosition - _userTeam.OrderPosition;
-                                break;
-                            case false:
-                                _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count)
-                                    ? 1
-                                    : _userTeam.OrderPosition - _activeUt.OrderPosition;
-                                break;
-                        }
-                        _addedPlayerMessage = String.Format(_addedPlayerMessage, _tmpActiveUserName, _tmpTurnsLeft);
-                    }
-                }
-
                 return new ViewPlayersViewModel()
                 {
-                    PlayersSearchedFor = _playersNotPickedForAnyTeam, 
-                    PlayersChosen = _playersPickedForThisTeam, 
-                    GameId = _userTeam.GameId, 
-                    GameName = _game.Name, 
-                    GameCurrentOrderPosition = _game.CurrentOrderPosition, 
-                    UserTeamId = _userTeam.Id, 
-                    UserName = _user.UserName, 
-                    UserTeamOrderPosition = _userTeam.OrderPosition, 
-                    AddedPlayerMessage = _addedPlayerMessage, 
-                    HasEnded = _game.HasEnded,
+                    PlayersSearchedFor = null,
+                    PlayersChosen = null,
+                    GameId = 0,
+                    GameName = null,
+                    GameCurrentOrderPosition = 0,
+                    UserTeamId = 0,
+                    UserName = null,
+                    UserTeamOrderPosition = 0,
+                    AddedPlayerMessage = null,
+                    HasEnded = false,
                     Banters = _banterForThisGame
                 };
-
             }
-            catch (Exception _exp)
+            else
             {
-                OperationStatus.CreateFromException(String.Format("GetUserTeamViewModel failed. userteam:{0}, footballclub:{1}, searchstring:{2}", userTeamId, footballClub, searchString), _exp, true);
-                throw;
+                try
+                {
+                    // setup message to be displayed to User once they have added their chosen player
+                    string _addedPlayerMessage = "Current player is {0}.  There are {1} turns left before your go.";
+                    int _tmpTurnsLeft = 0;
+                    UserTeam _userTeam = null;
+                    UserProfile _user = null;
+                    IEnumerable<UserTeam_Player> _playersPickedForThisTeam = null;
+                    IEnumerable<PlayerDto> _playersNotPickedForAnyTeam = new List<PlayerDto>();
+                    Game _game = null;
+
+                    // get this UserTeam, User and Game
+                    if (!_userTeams.TryGet(out _userTeam, x => x.Id == userTeamId))
+                        throw new ApplicationException();
+                    if (!_users.TryGet(out _user, x => x.UserId == _userTeam.UserId))
+                        throw new ApplicationException();
+                    if (!_games.TryGet(out _game, x => x.Id == _userTeam.GameId))
+                        throw new ApplicationException();
+
+                    if (_game.HasEnded)
+                    {
+                        _addedPlayerMessage = "The game has ended.";
+                    }
+                    else
+                    {
+                        _playersPickedForThisTeam = GetAllChosenUserTeamPlayersForTeam(_userTeam.Id);
+                        _playersNotPickedForAnyTeam = GetPlayersNotPickedForAnyTeam(_game.Id, footballClub, searchString);
+
+                        List<UserTeam> _userTeamsForGame = _userTeams.GetList(x => x.GameId == _game.Id).ToList();
+
+                        if (_userTeam.OrderPosition != _game.CurrentOrderPosition)
+                        {
+                            UserTeam _activeUt =
+                                _userTeams.Get(
+                                    s => s.OrderPosition == _game.CurrentOrderPosition && s.GameId == _game.Id,
+                                    u => u.User);
+
+                            string _tmpActiveUserName = _users.Get(x => x.UserId == _activeUt.UserId).UserName;
+
+                            switch (_activeUt.OrderPosition > _userTeam.OrderPosition)
+                            {
+                                case true:
+                                    _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count)
+                                        ? 1
+                                        : _activeUt.OrderPosition - _userTeam.OrderPosition;
+                                    break;
+                                case false:
+                                    _tmpTurnsLeft = (_userTeam.OrderPosition == _userTeamsForGame.Count)
+                                        ? 1
+                                        : _userTeam.OrderPosition - _activeUt.OrderPosition;
+                                    break;
+                            }
+                            _addedPlayerMessage = String.Format(_addedPlayerMessage, _tmpActiveUserName, _tmpTurnsLeft);
+                        }
+                    }
+
+                    return new ViewPlayersViewModel()
+                    {
+                        PlayersSearchedFor = _playersNotPickedForAnyTeam,
+                        PlayersChosen = _playersPickedForThisTeam,
+                        GameId = _userTeam.GameId,
+                        GameName = _game.Name,
+                        GameCurrentOrderPosition = _game.CurrentOrderPosition,
+                        UserTeamId = _userTeam.Id,
+                        UserName = _user.UserName,
+                        UserTeamOrderPosition = _userTeam.OrderPosition,
+                        AddedPlayerMessage = _addedPlayerMessage,
+                        HasEnded = _game.HasEnded,
+                        Banters = _banterForThisGame
+                    };
+                }
+                catch (Exception _exp)
+                {
+                    OperationStatus.CreateFromException(
+                        String.Format("GetUserTeamViewModel failed. userteam:{0}, footballclub:{1}, searchstring:{2}",
+                            userTeamId, footballClub, searchString), _exp, true);
+                    throw;
+                }
             }
         }
 

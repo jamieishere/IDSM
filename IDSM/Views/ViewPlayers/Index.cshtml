@@ -5,114 +5,139 @@
     ViewBag.Title = "ViewPlayers";
 }
 
-<div style="float:left">
-    <h2>@Model.UserName's team for the game <i>@Model.GameName</i></h2>
+<div style="float:left; width:100%;">
+    <p>
+        @Html.ActionLink("Game that it is currently my go","Index", "ViewPlayers", new{userTeamId = 34}, new { @class = "currentplayer" })  
+        @Html.ActionLink("Game not my go","Index", "ViewPlayers", new{userTeamId = 34})
+    </p>
+</div>
+<div style="float:left; width:100%;">
+    <p>Banter Ticker Tape</p>
+</div>
+@if (Model.GameId != 0)
+{
+    <div style="float: left; width: 50%;">
+        <h2>@Model.UserName's team for the game <i>@Model.GameName</i></h2>
 
-    <div id="dialog-confirm" title="Add Player?">
-        <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Do you want to add this player?</p>
+        <div id="dialog-confirm" title="Add Player?">
+            <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Do you want to add this player?</p>
+        </div>
+
+        <script type="text/javascript">
+            var addLinkObj;
+
+            $(function() {
+                $("#dialog-confirm").dialog({
+                    autoOpen: false,
+                    resizable: false,
+                    height: 140,
+                    modal: true,
+                    buttons: {
+                        "Are you sure you want to add this player?": function() {
+                            var path = $(this).data('link').href;
+                            $.ajax({
+                                url: path,
+                                cache: false,
+                                success: function(data) { return true; }
+                            });
+                            $(this).hide();
+                            $(this).dialog("close");
+                            addLinkObj.hide();
+                            return true;
+                        },
+                        Cancel: function() {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+
+            $(document).ready(function() {
+
+                $(".addItem").click(function(event) {
+                    addLinkObj = $(this);
+                    $("#dialog-confirm")
+                        .data('link', this)
+                        .dialog("open");
+                });
+            });
+
+            $(document).on("click", "a.deleteRow", function() {
+                $(this).parents("div.playerRow:first").remove();
+                return false;
+            });
+
+        </script>
+
+        @using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Post))
+        {
+            if (!Model.HasEnded)
+            {
+                <div id="ChosenPlayerRows">
+                    @(Model.PlayersChosen
+                          .Each(@<div class="playerRow">@Html.Partial("~/Views/ViewPlayers/ChosenPlayerRow.cshtml", item)</div>)
+                          .Else(
+                              @<div class="playerRow">
+                                   <b>No Players Chosen Yet</b>
+                               </div>
+                          )
+                          )
+        
+                </div>
+            }
+            <input type="hidden" name="GameID" value="@Model.GameId" />
+            <input type="hidden" name="UserTeamID" value="@Model.UserTeamId" />
+        }
+        @if (Model.GameCurrentOrderPosition != Model.UserTeamOrderPosition)
+        {
+            <p>Model.AddedPlayerMessage</p>
+        }
+        else
+        {
+
+            <h2>List of Footballers</h2>
+            using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
+            {
+                <p> 
+                    Club: @Html.DropDownList("footballClub", "All")  
+                    Name: @Html.TextBox("SearchString") 
+                    <input type="submit" value="Filter" /></p>
+            }
+            <table>
+                @foreach (var item in Model.PlayersSearchedFor)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Club)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Position)
+                        </td>        
+                        <td>
+                            @if (!item.HasBeenChosen)
+                            {
+                                @Html.ActionLink("Add to team", "AddPlayer", new {playerId = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId}, new {@class = "addItem"})
+                            }
+                        </td>
+                    </tr>
+                }</table>
+        }
     </div>
 
-    <script type="text/javascript">
-        var addLinkObj;
-
-        $(function () {
-            $("#dialog-confirm").dialog({
-                autoOpen: false,
-                resizable: false,
-                height: 140,
-                modal: true,
-                buttons: {
-                    "Are you sure you want to add this player?": function () {
-                        var path = $(this).data('link').href;
-                        $.ajax({
-                            url: path,
-                            cache: false,
-                            success: function (data) { return true; }
-                        });
-                        $(this).hide();
-                        $(this).dialog("close");
-                        addLinkObj.hide();
-                        return true;
-                    },
-                    Cancel: function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
-        });
-
-        $(document).ready(function () {
-
-            $(".addItem").click(function (event) {
-                addLinkObj = $(this); 
-                $("#dialog-confirm")
-                    .data('link', this)
-                    .dialog("open");
-            });
-        });
-
-        $(document).on("click", "a.deleteRow", function () {
-            $(this).parents("div.playerRow:first").remove();
-            return false;
-        });
-
-    </script>
-
-    @using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Post))
-    {
-        if (!Model.HasEnded)
+    <div style="float: left; width: 50%;">
+    
+        <h2>BANTER</h2>
+    
+        @using (Html.BeginForm("AddBanter", "ViewPlayers", FormMethod.Post))
         {
-            <div id="ChosenPlayerRows">
-                @(Model.PlayersChosen
-                      .Each(@<div class="playerRow">@Html.Partial("~/Views/ViewPlayers/ChosenPlayerRow.cshtml", item)</div>)
-                      .Else(
-                          @<div class="playerRow">
-                               <b>No Players Chosen Yet</b>
-                           </div>
-                      )
-                      )
-        
-            </div>
+            <p>banter: @Html.TextBox("Banter") 
+                <input type="hidden" name="userTeamId" value="@Model.UserTeamId" />
+                <input type="submit" value="post banter" /></p>
         }
-        <input type="hidden" name="GameID" value="@Model.GameId" />
-        <input type="hidden" name="UserTeamID" value="@Model.UserTeamId" />
-    }
-    @if(Model.GameCurrentOrderPosition != Model.UserTeamOrderPosition){
-        <p>Model.AddedPlayerMessage</p>
-    }else{
-
-        <h2>List of Footballers</h2>
-        using (Html.BeginForm("Index", "ViewPlayers", FormMethod.Get))
-        {
-            <p> 
-                Club: @Html.DropDownList("footballClub", "All")  
-                Name: @Html.TextBox("SearchString") 
-                <input type="submit" value="Filter" /></p>
-        }
-        <table>
-            @foreach (var item in Model.PlayersSearchedFor)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Name)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Nation)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Club)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Position)
-                    </td>        
-                    <td>
-                        @if(!item.HasBeenChosen){
-                            @Html.ActionLink("Add to team", "AddPlayer", new { playerId = item.Id, userteamid = Model.UserTeamId, gameid = Model.GameId }, new { @class = "addItem" })
-                        }
-                    </td>
-                </tr>
-            }</table>
-
+    
         <h2>List of Banter</h2>
         <table>
             @foreach (var item in Model.Banters)
@@ -123,18 +148,6 @@
                     </td>
                 </tr>
             }</table>        
-    }
-</div>
+    </div>
 
-<div style="float:right">
-    
-     <h2>BANTER</h2>
-    
-     @using (Html.BeginForm("AddBanter", "ViewPlayers", FormMethod.Post))
-    {
-        <p>banter: @Html.TextBox("Banter") 
-            <input type="hidden" name="userTeamId" value="@Model.UserTeamId" />
-            <input type="submit" value="post banter" /></p>
-     }
-</div>
-
+}

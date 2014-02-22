@@ -1,6 +1,7 @@
 ﻿using IDSM.Model;
 using System.Collections.Generic;
 using System.Web.Mvc;
+using IDSM.Model.ViewModels;
 using IDSM.ServiceLayer;
 
 namespace IDSM.Controllers
@@ -15,16 +16,23 @@ namespace IDSM.Controllers
             _service = service;
         }
 
-        public ActionResult Index(int userTeamId, string footballClub, string searchString)
+        public ActionResult Index(int? userTeamId, string footballClub, string searchString)
         {
-            UserTeam ut = null;
-            if (!_service.TryGetUserTeam(out ut, userTeamId))
-                return RedirectToAction("NotFound", "Error");
-            IEnumerable<string> _clubs = null; 
-            _clubs = _service.GetAllClubs();
-            ViewBag.FootballClub = new SelectList(_clubs);
+            // change this.
+            // ViewPlayersViewModel needs to:
+            // return selectlist rather than set viewbag here - see http://stackoverflow.com/questions/6623700/how-to-bind-a-selectlist-with-viewmodel
+            // be modified to handle gameslist
+            // checkout how accoutnataglance do multiple panels - want, ideally, for these panels - feed, gameslist, actual game, banter, to move around - have looked at the site itself and makes no sense... will need to watch the videos..
+            // it's not necessary to have a jazzy inerface really.. but i should learn it, as planned.
+            // however what i DO want... is to load the game info in by ajax instead of refresh
+            // also, i need signlr to push??/ 
 
-            return View(_service.GetViewPlayersViewModel(userTeamId, footballClub, searchString));
+            if (userTeamId == null) userTeamId = 0;
+                IEnumerable<string> _clubs = null;
+                _clubs = _service.GetAllClubs();
+                ViewBag.FootballClub = new SelectList(_clubs);
+
+                return View(_service.GetViewPlayersViewModel((int)userTeamId, footballClub, searchString));
         }
 
         public ActionResult AddPlayer(int playerId, int userTeamId, int gameId)
